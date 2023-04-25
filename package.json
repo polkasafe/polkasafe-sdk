@@ -1,5 +1,5 @@
 {
-  "name": "root",
+  "name": "polkasafe-sdk",
   "license": "MIT",
   "private": true,
   "workspaces": [
