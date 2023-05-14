@@ -24,3 +24,6 @@ dist
 .idea
 # .vscode
 .env
+
+test.ts
+functionalities.md
