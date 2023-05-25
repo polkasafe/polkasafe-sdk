@@ -7,6 +7,7 @@ import { createMultisig } from './create-multisig'
 import { createProxyForWallet } from './create-proxy'
 import { deleteMultisig } from './delete-multisig'
 import { editMultisigProxy } from './edit-multisig'
+import { getAllMultisigByAddress } from './get-all-multisig-by-address'
 import { getAssetsForAddress } from './get-assets-for-address'
 import { getConnectAddressToken } from './get-connect-address-token'
 import { getMultisigDataByMultisigAddress } from './get-multisig-data-by-address'
@@ -18,6 +19,7 @@ import { sendNotification } from './send-notifications'
 import { transferFunds } from './transfer-funds'
 import formatBnBalance from './uitils/formatBnBalance'
 import { handleHeaders } from './uitils/handleheaders'
+import { voteOnProposal } from './vote-on-proposal'
 
 export class Polkasafe extends Base {
     protected getHeaders() {
@@ -29,7 +31,7 @@ export class Polkasafe extends Base {
 
     getConnectAddressToken(address: string): Promise<any> {
         const { endpoint, headers, options } = getConnectAddressToken(address)
-        return this.request(endpoint, { ...headers, ...handleHeaders(this.address) }, options)
+        return this.request(endpoint, { ...headers, ...handleHeaders({address}) }, options)
     }
 
     connectAddress(address: string): Promise<any> {
@@ -445,4 +447,41 @@ export class Polkasafe extends Base {
         return { status, error }
     }
 
+    async voteOnProposal(
+        multisigAddress:string,
+        injector:any,
+        proposalIndex:number,
+        vote:number,
+        statusGrabber: any,
+        proposalType:any
+        ){
+        const { data: multisig } = await this.getMultisigDataByAddress(multisigAddress)
+        const data = {
+            injector,
+            multisig,
+            statusGrabber,
+            proposalIndex,
+            proposalType,
+            vote,
+        }
+        const { status, error, message } = await voteOnProposal({
+            address: this.address,
+            network: this.network,
+            data
+        })
+        if (!error && status === 200) {
+            return { status: 200, message: message }
+        }
+        return { status, error }
+    }
+
+    async getAllMultisigByAddress(){
+        try{
+            this.getHeaders()
+            const response = await getAllMultisigByAddress(this.address, this.network)
+            return response;
+        }catch(e){
+            return {status: 400, error:e}
+        }
+    }
 }

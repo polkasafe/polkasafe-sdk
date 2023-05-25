@@ -1,4 +1,4 @@
-export const SUBSCAN_API_KEY = '056b677410ac226bea971a3e03de66fa';
+export const SUBSCAN_API_KEY = process.env['API_KEY'];
 
 export const SUBSCAN_API_HEADERS = {
 	'Accept': 'application/json',

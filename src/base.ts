@@ -1,12 +1,3 @@
-type Config = {
-    baseURL?: string;
-    apiKey: string;
-};
-
-import { ApiPromise, WsProvider } from '@polkadot/api';
-
-// Do something
-
 export abstract class Base {
     private baseUrl: string;
     protected signature:any;
@@ -14,21 +5,15 @@ export abstract class Base {
     protected address:any;
     protected api:any;
     
-    constructor(config?: Config) {
-        this.baseUrl =config?.baseURL ? config?.baseURL : "https://us-central1-polkasafe-a8042.cloudfunctions.net";
+    constructor() {
+        this.baseUrl = "https://us-central1-polkasafe-a8042.cloudfunctions.net";
     }
 
-    setSignature (signature:string,network:string, address:string):Promise<any>{
+    setSignature (signature:string,network:string, address:string){
         this.signature = signature
         this.network = network
         this.address = address
-        const wsProvider = new WsProvider('wss://rpc.polkadot.io');
-        return ApiPromise.create({ provider: wsProvider }).then((api)=>{
-            this.api = api;
-            return {message:'success'}
-        }).catch((error)=>{
-            throw new Error(error.message);
-        })
+        return { message: "success" }
     }
 
     protected request<T>(endpoint: string, reqHeaders?: any, options?: RequestInit): Promise<T> {
