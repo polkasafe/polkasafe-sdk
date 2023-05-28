@@ -1,0 +1,24 @@
+{
+    "name": "polkasafe",
+    "version": "1.0.0",
+    "description": "",
+    "main": "build/index.js",
+    "module": "build/index.m.js",
+    "unpkg": "build/index.umd.js",
+    "types": "build/index.d.ts",
+    "scripts": {
+        "build": "rm -rf build && microbundle --tsconfig tsconfig.json --no-sourcemap"
+    },
+    "dependencies": {
+        "@polkadot/api": "^10.6.1",
+        "@polkadot/extension-dapp": "^0.25.0-beta.1",
+        "axios": "^1.4.0",
+        "bn.js": "^5.2.1",
+        "dayjs": "^1.11.7"
+    },
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "microbundle": "^0.15.1"
+    }
+}
