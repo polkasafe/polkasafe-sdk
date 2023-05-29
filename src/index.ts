@@ -24,6 +24,7 @@ import { stringToHex } from '@polkadot/util';
 import { responseMessages } from './utils/constants/response_messages';
 import { Injected } from '@polkadot/extension-inject/types';
 import { IAddressBook, IAsset, IMultisigAddress, IQueueItem, ITransaction } from './utils/globalTypes';
+import { networks } from './utils/constants/network_constants';
 
 type Multisig = {
     address: string;
@@ -50,6 +51,9 @@ export class Polkasafe extends Base {
     async connect(network: string, address: string, injector: Injected): Promise<{message:string, signature:string}> {
         if (!network || !address || !injector) {
             throw new Error(responseMessages.missing_params)
+        }
+        if(!networks[network]){
+            throw new Error(responseMessages.invalid_params)
         }
         const { data: token } = await this.getConnectAddressToken(address)
 
@@ -258,6 +262,9 @@ export class Polkasafe extends Base {
         statusGrabber?: any
     ): Promise<any> {
         try {
+            if(this.network === networks.ASTAR){
+                throw new Error("Astar doesn't support proxy")
+            }
             const { data } = await this.getMultisigDataByAddress(multisigAddress);
             if (!data) {
                 return { error: 'Invalid multisig, make sure multisig is on chain' }
@@ -331,6 +338,9 @@ export class Polkasafe extends Base {
         newThreshold: number,
         statusGrabber: any
     ): Promise<any> {
+        if(this.network === networks.ASTAR){
+            throw new Error("Astar doesn't support proxy")
+        }
         const response: any = {};
         const { data } = await this.getMultisigDataByAddress(multisigAddress);
         if (!data) {
@@ -522,6 +532,9 @@ export class Polkasafe extends Base {
         requestType: 'proxy' | 'wallet' | 'edit_proxy',
         statusGrabber: any
     ) {
+        if(this.network === networks.ASTAR && (requestType === 'proxy' || requestType === 'edit_proxy')){
+            throw new Error("Astar doesn't support proxy")
+        }
         const senderAddress = this.address;
         const { data: multisig } = await this.getMultisigDataByAddress(
             multisigAddress
