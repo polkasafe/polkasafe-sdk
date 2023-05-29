@@ -20,20 +20,27 @@ npm install polkasafe
 
 # Geting started
 
+Setting up the Polkasafe SDK is a straightforward process. 
+Here's a step-by-step guide to installing and using the SDK:
+
 Creating an Instance
 ```javascript
 import Polkasafe from 'polkasafe-sdk';
 const client = new Polkasafe();
 ```
-Setting Signature, Network, and Address
-`NOTE: Before using any functions, set the signature, network, and address:`
+`NOTE: Connecting with polkasafe is essential. Before using any functions, use connect function to set the network, address, and injector.`
 
 ```javascript
-client.setSignature(signature, network, address);
+/**
+ * @param {string} network
+ * @param {string} address
+ * @param {Injected} injector
+ */
+// injector: Simplify transaction signing and submission using the injector parameter
+client.connect(network, address, injector)
 ```
 
-Replace signature, network, and address with your specific values.
-That's it! You have now set up the Polkasafe SDK and are ready to start using it in your application.
+Replace network, address, and injector with your specific values. That's it! You have now set up the Polkasafe SDK and you are ready to start using it in your application.
 
 # Usage Guide:
 Here are the core functionalities of the Polkasafe SDK for managing multi-signature (multisig) wallets:
