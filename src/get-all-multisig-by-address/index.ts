@@ -9,9 +9,9 @@ export const getAllMultisigByAddress = async (address: string, network: string) 
     }, {
         headers: SUBSCAN_API_HEADERS
     });
-    console.log(data, address, network)
-    if (data?.multisig?.multi_account) {
-        return { status: 200, message: 'success', data: data?.multisig?.multi_account }
+    
+    if (data?.data?.account?.multisig?.multi_account) {
+        return { status: 200, message: 'success', data: data?.data?.account?.multisig?.multi_account }
     }
     return { status: 400, error: data }
 }

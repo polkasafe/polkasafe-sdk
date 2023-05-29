@@ -633,7 +633,7 @@ export class Polkasafe extends Base {
         proposalType: any
     ) {
         
-        if (proposalType !== 'referendumV1' && proposalType !== 'referendumV2') {
+        if (proposalType !== 'referendum' && proposalType !== 'referendums_v2') {
             throw new Error(`Unsupported proposal type: ${proposalType}`)
         }
 
