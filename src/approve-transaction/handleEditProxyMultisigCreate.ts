@@ -53,8 +53,6 @@ export const handleEditProxyMultisigCreate = async (multisig: any, proxyAddress:
 
             const { data: multisigData, error: multisigError } = await createMultisigRes.json() as { error: string; data: any };
 
-            console.log('HandleEditMultisig', multisigData)
-
             if (multisigError) {
                 return { status: 400, error: multisigError };
             }

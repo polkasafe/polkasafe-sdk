@@ -23,6 +23,7 @@ import { voteOnProposal } from './vote-on-proposal';
 import { stringToHex } from '@polkadot/util';
 import { responseMessages } from './utils/constants/response_messages';
 import { Injected } from '@polkadot/extension-inject/types';
+import { IAddressBook, IAsset, IMultisigAddress, IQueueItem, ITransaction } from './utils/globalTypes';
 
 type Multisig = {
     address: string;
@@ -45,8 +46,8 @@ export class Polkasafe extends Base {
             signature: this.signature,
         });
     }
-
-    async connect(network: string, address: string, injector: Injected) {
+    
+    async connect(network: string, address: string, injector: Injected): Promise<{message:string, signature:string}> {
         if (!network || !address || !injector) {
             throw new Error(responseMessages.missing_params)
         }
@@ -73,7 +74,7 @@ export class Polkasafe extends Base {
         return { message: "success", signature: signature }
     }
 
-    getConnectAddressToken(address: string): Promise<any> {
+    getConnectAddressToken(address: string): Promise<{ data: string, error:string|undefined}> {
         const { endpoint, headers, options } = getConnectAddressToken(address);
         return this.request(
             endpoint,
@@ -82,7 +83,7 @@ export class Polkasafe extends Base {
         );
     }
 
-    connectAddress(address: string): Promise<any> {
+    connectAddress(address: string): Promise<{data:IMultisigAddress, error:string |undefined}> {
         const { endpoint, headers, options } = connectAddress(
             address,
             this.network,
@@ -91,7 +92,7 @@ export class Polkasafe extends Base {
         return this.request(endpoint, headers, options);
     }
 
-    addToAddressBook(address: string, name: string): Promise<any> {
+    addToAddressBook(address: string, name: string): Promise<{data:Array<IAddressBook>, error:string|undefined}> {
         const { endpoint, headers, options } = addToAddressBook({
             name,
             addressToAdd: address,
@@ -103,7 +104,7 @@ export class Polkasafe extends Base {
         );
     }
 
-    removeFromAddressBook(address: string, name: string): Promise<any> {
+    removeFromAddressBook(address: string, name: string): Promise<{data:Array<IAddressBook>, error:string | undefined}> {
         const { endpoint, headers, options } = removeFromAddressBook({
             name,
             addressToRemove: address,
@@ -137,7 +138,7 @@ export class Polkasafe extends Base {
         );
     }
 
-    getMultisigDataByAddress(multisigAddress: string): Promise<any> {
+    getMultisigDataByAddress(multisigAddress: string): Promise<{data:IMultisigAddress, error:string|undefined}> {
         const { endpoint, headers, options } = getMultisigDataByMultisigAddress({
             multisigAddress,
             network: this.network,
@@ -153,7 +154,7 @@ export class Polkasafe extends Base {
         multisigAddress: string,
         page: number,
         limit: number
-    ): Promise<any> {
+    ): Promise<{data:Array<ITransaction>, error:string | undefined}> {
         const { endpoint, headers, options } = getTransactionsForMultisig({
             multisigAddress,
             page,
@@ -171,7 +172,7 @@ export class Polkasafe extends Base {
         multisigAddress: string,
         page: number,
         limit: number
-    ): Promise<any> {
+    ): Promise<{data:Array<IAsset>, error:string |undefined}> {
         const { endpoint, headers, options } = getAssetsForAddress({
             multisigAddress,
             page,
@@ -189,7 +190,7 @@ export class Polkasafe extends Base {
         multisigAddress: string,
         page: number,
         limit: number
-    ): Promise<any> {
+    ): Promise<{data:Array<IQueueItem>, error:string |undefined}> {
         const { endpoint, headers, options } = getMultisigQueue({
             multisigAddress,
             page,
@@ -202,7 +203,7 @@ export class Polkasafe extends Base {
         );
     }
 
-    renameMultisig(multisigAddress: string, name: string): Promise<any> {
+    renameMultisig(multisigAddress: string, name: string): Promise<{data:string,error:string|undefined}> {
         const { endpoint, headers, options } = renameMultisig({
             multisigAddress,
             name,
@@ -243,7 +244,7 @@ export class Polkasafe extends Base {
         return this.request(endpoint, headers, options);
     }
 
-    deleteMultisig(multisigAddress: string): Promise<any> {
+    deleteMultisig(multisigAddress: string): Promise<{data:string, error:string|undefined}> {
         const { endpoint, headers, options } = deleteMultisig(multisigAddress);
         return this.request(
             endpoint,
@@ -354,9 +355,6 @@ export class Polkasafe extends Base {
                 signature:this.signature,
                 data: payload,
             });
-
-        console.log('response of addNewMultisig:', addNewMultiResponse);
-        console.log('response of removeOldMultisig:', removeOldMultiResponse);
         if (!addNewMultiResponse.error && addNewMultiResponse.status === 200) {
             const { status, transactionData } = addNewMultiResponse;
 

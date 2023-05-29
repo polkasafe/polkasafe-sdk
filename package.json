@@ -18,6 +18,9 @@
     },
     "author": "",
     "license": "ISC",
+    "files": [
+        "build"
+    ],
     "devDependencies": {
         "microbundle": "^0.15.1"
     }

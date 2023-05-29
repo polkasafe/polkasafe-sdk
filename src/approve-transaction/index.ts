@@ -48,7 +48,6 @@ export async function approveTransaction({
 		const [, multisigInfo] = multisigInfos?.find(([h]) => h.eq(callHash)) || [null, null]
 
 		if (!multisigInfo) {
-			console.log('No multisig info found')
 			return { status: 400, error: 'No multisig info found' }
 		}
 		const numApprovals = multisigInfo.approvals.length
@@ -144,7 +143,7 @@ export async function approveTransaction({
 		if (!response.message) {
 			return { status: 400, error: response.error }
 		}
-		
+
 		return { status: 200, message: 'Transaction Successful', data: response.data || null }
 	} catch (err: unknown) {
 		return { status: 500, error: err }
