@@ -84,6 +84,7 @@ export async function editMultisigProxy({
 		const proxyTx = api.tx.proxy.proxy(proxyAddress, null, addProxyTx);
 
 		const callData = api.createType('Call', proxyTx.method.toHex());
+		// @ts-ignore
 		const { weight } = await calcWeight(callData, api);
 
 		const payload: AddNewMultisigToProxyType = {
@@ -111,6 +112,7 @@ export async function editMultisigProxy({
 		const proxyRemoveTx = api.tx.proxy.proxy(proxyAddress, null, removeProxyTx);
 
 		const removeCallData = api.createType('Call', proxyRemoveTx.method.toHex());
+		// @ts-ignore
 		const { weight: removeWeight } = await calcWeight(removeCallData, api);
 
 		const removePayload = {

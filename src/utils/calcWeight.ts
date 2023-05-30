@@ -60,6 +60,7 @@ export function convertWeight (weight: V1Weight | V2Weight): { v1Weight: BN, v2W
 // for a given call, calculate the weight
 export async function calcWeight (call: Call, api: ApiPromise): Promise<Result> {
 	let val = objectSpread({
+		// @ts-ignore
 		isWeightV2: !isFunction(api.registry.createType<V1Weight>('Weight').toBn)
 	}, EMPTY_STATE) as Result;
 
@@ -74,6 +75,7 @@ export async function calcWeight (call: Call, api: ApiPromise): Promise<Result> 
 				encodedCallLength: call.encodedLength, 
 				v1Weight,
 				v2Weight,
+				// @ts-ignore
 				weight: !isFunction(api.registry.createType<V1Weight>('Weight').toBn)
 					? v2Weight
 					: v1Weight

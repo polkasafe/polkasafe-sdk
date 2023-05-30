@@ -1,3 +1,4 @@
+import '@polkadot/api-augment';
 import { addToAddressBook } from './add-to-address-book';
 import { approveTransaction } from './approve-transaction';
 import { Base } from './base';
@@ -25,6 +26,9 @@ import { responseMessages } from './utils/constants/response_messages';
 import { Injected } from '@polkadot/extension-inject/types';
 import { IAddressBook, IAsset, IMultisigAddress, IQueueItem, ITransaction } from './utils/globalTypes';
 import { networks } from './utils/constants/network_constants';
+import { SubmittableExtrinsic } from '@polkadot/api/submittable/types'
+import { customTransaction } from './custom-transaction';
+
 
 type Multisig = {
     address: string;
@@ -47,12 +51,12 @@ export class Polkasafe extends Base {
             signature: this.signature,
         });
     }
-    
-    async connect(network: string, address: string, injector: Injected): Promise<{message:string, signature:string}> {
+
+    async connect(network: string, address: string, injector: Injected): Promise<{ message: string, signature: string }> {
         if (!network || !address || !injector) {
             throw new Error(responseMessages.missing_params)
         }
-        if(!networks[network]){
+        if (!Object.values(networks).includes(network)) {
             throw new Error(responseMessages.invalid_params)
         }
         const { data: token } = await this.getConnectAddressToken(address)
@@ -78,7 +82,7 @@ export class Polkasafe extends Base {
         return { message: "success", signature: signature }
     }
 
-    getConnectAddressToken(address: string): Promise<{ data: string, error:string|undefined}> {
+    getConnectAddressToken(address: string): Promise<{ data: string, error: string | undefined }> {
         const { endpoint, headers, options } = getConnectAddressToken(address);
         return this.request(
             endpoint,
@@ -87,7 +91,7 @@ export class Polkasafe extends Base {
         );
     }
 
-    connectAddress(address: string): Promise<{data:IMultisigAddress, error:string |undefined}> {
+    connectAddress(address: string): Promise<{ data: IMultisigAddress, error: string | undefined }> {
         const { endpoint, headers, options } = connectAddress(
             address,
             this.network,
@@ -96,7 +100,7 @@ export class Polkasafe extends Base {
         return this.request(endpoint, headers, options);
     }
 
-    addToAddressBook(address: string, name: string): Promise<{data:Array<IAddressBook>, error:string|undefined}> {
+    addToAddressBook(address: string, name: string): Promise<{ data: Array<IAddressBook>, error: string | undefined }> {
         const { endpoint, headers, options } = addToAddressBook({
             name,
             addressToAdd: address,
@@ -108,7 +112,7 @@ export class Polkasafe extends Base {
         );
     }
 
-    removeFromAddressBook(address: string, name: string): Promise<{data:Array<IAddressBook>, error:string | undefined}> {
+    removeFromAddressBook(address: string, name: string): Promise<{ data: Array<IAddressBook>, error: string | undefined }> {
         const { endpoint, headers, options } = removeFromAddressBook({
             name,
             addressToRemove: address,
@@ -142,7 +146,7 @@ export class Polkasafe extends Base {
         );
     }
 
-    getMultisigDataByAddress(multisigAddress: string): Promise<{data:IMultisigAddress, error:string|undefined}> {
+    getMultisigDataByAddress(multisigAddress: string): Promise<{ data: IMultisigAddress, error: string | undefined }> {
         const { endpoint, headers, options } = getMultisigDataByMultisigAddress({
             multisigAddress,
             network: this.network,
@@ -158,7 +162,7 @@ export class Polkasafe extends Base {
         multisigAddress: string,
         page: number,
         limit: number
-    ): Promise<{data:Array<ITransaction>, error:string | undefined}> {
+    ): Promise<{ data: Array<ITransaction>, error: string | undefined }> {
         const { endpoint, headers, options } = getTransactionsForMultisig({
             multisigAddress,
             page,
@@ -176,7 +180,7 @@ export class Polkasafe extends Base {
         multisigAddress: string,
         page: number,
         limit: number
-    ): Promise<{data:Array<IAsset>, error:string |undefined}> {
+    ): Promise<{ data: Array<IAsset>, error: string | undefined }> {
         const { endpoint, headers, options } = getAssetsForAddress({
             multisigAddress,
             page,
@@ -194,7 +198,7 @@ export class Polkasafe extends Base {
         multisigAddress: string,
         page: number,
         limit: number
-    ): Promise<{data:Array<IQueueItem>, error:string |undefined}> {
+    ): Promise<{ data: Array<IQueueItem>, error: string | undefined }> {
         const { endpoint, headers, options } = getMultisigQueue({
             multisigAddress,
             page,
@@ -207,7 +211,7 @@ export class Polkasafe extends Base {
         );
     }
 
-    renameMultisig(multisigAddress: string, name: string): Promise<{data:string,error:string|undefined}> {
+    renameMultisig(multisigAddress: string, name: string): Promise<{ data: string, error: string | undefined }> {
         const { endpoint, headers, options } = renameMultisig({
             multisigAddress,
             name,
@@ -248,7 +252,7 @@ export class Polkasafe extends Base {
         return this.request(endpoint, headers, options);
     }
 
-    deleteMultisig(multisigAddress: string): Promise<{data:string, error:string|undefined}> {
+    deleteMultisig(multisigAddress: string): Promise<{ data: string, error: string | undefined }> {
         const { endpoint, headers, options } = deleteMultisig(multisigAddress);
         return this.request(
             endpoint,
@@ -262,7 +266,7 @@ export class Polkasafe extends Base {
         statusGrabber?: any
     ): Promise<any> {
         try {
-            if(this.network === networks.ASTAR){
+            if (this.network === networks.ASTAR) {
                 throw new Error("Astar doesn't support proxy")
             }
             const { data } = await this.getMultisigDataByAddress(multisigAddress);
@@ -283,7 +287,7 @@ export class Polkasafe extends Base {
                     network: this.network,
                     data: payload,
                 });
-                
+
             if (!error && status === 200 && transactionData) {
                 try {
                     const newTransactionData = {
@@ -338,7 +342,7 @@ export class Polkasafe extends Base {
         newThreshold: number,
         statusGrabber: any
     ): Promise<any> {
-        if(this.network === networks.ASTAR){
+        if (this.network === networks.ASTAR) {
             throw new Error("Astar doesn't support proxy")
         }
         const response: any = {};
@@ -355,14 +359,14 @@ export class Polkasafe extends Base {
             newThreshold,
             proxyAddress: data.proxy,
             injector: this.injector,
-            multisigName:data.name,
+            multisigName: data.name,
             statusGrabber: statusGrabber || emptyFucn,
         };
         const { addNewMultiResponse, removeOldMultiResponse, newMulti } =
             await editMultisigProxy({
                 address: this.address,
                 network: this.network,
-                signature:this.signature,
+                signature: this.signature,
                 data: payload,
             });
         if (!addNewMultiResponse.error && addNewMultiResponse.status === 200) {
@@ -532,7 +536,7 @@ export class Polkasafe extends Base {
         requestType: 'proxy' | 'wallet' | 'edit_proxy',
         statusGrabber: any
     ) {
-        if(this.network === networks.ASTAR && (requestType === 'proxy' || requestType === 'edit_proxy')){
+        if (this.network === networks.ASTAR && (requestType === 'proxy' || requestType === 'edit_proxy')) {
             throw new Error("Astar doesn't support proxy")
         }
         const senderAddress = this.address;
@@ -643,7 +647,7 @@ export class Polkasafe extends Base {
         statusGrabber: any,
         proposalType: any
     ) {
-        
+
         if (proposalType !== 'referendum' && proposalType !== 'referendums_v2') {
             throw new Error(`Unsupported proposal type: ${proposalType}`)
         }
@@ -672,6 +676,74 @@ export class Polkasafe extends Base {
             return { status: 200, message: message };
         }
         return { status, error };
+    }
+
+    async transferAsMulti(
+        multisigAddress: string,
+        tx: SubmittableExtrinsic<"promise">,
+        statusGrabber: any,
+        isProxy: boolean
+    ): Promise<any> {
+        if (!multisigAddress || !tx)
+            throw new Error(responseMessages.invalid_params)
+        const { data: multisig } = await this.getMultisigDataByAddress(
+            multisigAddress
+        );
+        if (!multisig) {
+            return { error: 'Invalid multisig, make sure multisig is on chain' }
+        }
+        const { status,
+            error,
+            message,
+            data: transactionData, } = await customTransaction({
+                multisig,
+                network: this.network,
+                isProxy,
+                tx,
+                statusGrabber,
+                address: this.address,
+                injector: this.injector
+            })
+        if (!error && status === 200) {
+            try {
+                const newTransactionData = {
+                    amount_token: Number(
+                        formatBnBalance(
+                            transactionData.amount,
+                            {
+                                numberAfterComma: 3,
+                                withThousandDelimitor: false,
+                                withUnit: false,
+                            },
+                            this.network
+                        )
+                    ),
+                    block_number: transactionData.block_number,
+                    callData: transactionData.callData,
+                    callHash: transactionData.callHash,
+                    from: transactionData.from,
+                    network: transactionData.network,
+                    note: transactionData.note,
+                    to: transactionData.to,
+                };
+                const { endpoint, headers, options } = {
+                    endpoint: '/addTransaction',
+                    headers: this.getHeaders(),
+                    options: {
+                        body: JSON.stringify(newTransactionData),
+                        method: 'POST',
+                    },
+                };
+                this.request(
+                    endpoint,
+                    { ...headers, ...this.getHeaders() },
+                    options
+                );
+            } catch (e) {
+                console.log(e);
+            }
+            return { status: 200, message: message, data: transactionData };
+        }
     }
 
     async getAllMultisigByAddress(address: string, network: string) {

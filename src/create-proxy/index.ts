@@ -49,6 +49,7 @@ export async function createProxyForWallet({
 		const proxyTx = api.tx.proxy.createPure('Any', 0, new Date().getMilliseconds());
 		const transferTx = api.tx.balances.transferKeepAlive(recipientAddress, amount);
 		const callData = api.createType('Call', transferTx.method.toHex());
+		//@ts-ignore
 		const { weight } = await calcWeight(callData, api);
 
 		const multiSigProxyCall = api.tx.multisig.asMulti(

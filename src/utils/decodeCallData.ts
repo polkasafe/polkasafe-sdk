@@ -50,10 +50,12 @@ export default function decodeCallData (hex: string, api: ApiPromise) : { data?:
 			};
 
 			decoded = tx;
+			// @ts-ignore
 			extrinsicCall = api.createType('Call', decoded.method);
 		} catch {
 			try {
 				// attempt to decode as Call
+				// @ts-ignore
 				extrinsicCall = api.createType('Call', hex);
 
 				const callHex = extrinsicCall.toHex();
@@ -64,25 +66,26 @@ export default function decodeCallData (hex: string, api: ApiPromise) : { data?:
 				} else if (hex.startsWith(callHex)) {
 					// this could be an un-prefixed payload...
 					const prefixed = u8aConcat(compactToU8a(extrinsicCall.encodedLength), hex);
-
+					// @ts-ignore
 					extrinsicPayload = api.createType('ExtrinsicPayload', prefixed);
 
 					if(u8aEq(extrinsicPayload.toU8a(), prefixed)) return {
 						error: 'Unable to decode data as un-prefixed ExtrinsicPayload'
 					};
-
+					// @ts-ignore
 					extrinsicCall = api.createType('Call', extrinsicPayload.method.toHex());
 				} else {
 					throw new Error('Unable to decode data as Call, length mismatch in supplied data');
 				}
 			} catch {
 				// final attempt, we try this as-is as a (prefixed) payload
+				// @ts-ignore
 				extrinsicPayload = api.createType('ExtrinsicPayload', hex);
 
 				if(extrinsicPayload.toHex() === hex) return {
 					error: 'Unable to decode input data as Call, Extrinsic or ExtrinsicPayload'
 				};
-
+				// @ts-ignore
 				extrinsicCall = api.createType('Call', extrinsicPayload.method.toHex());
 			}
 		}
