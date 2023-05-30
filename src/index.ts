@@ -678,7 +678,7 @@ export class Polkasafe extends Base {
         return { status, error };
     }
 
-    async transferAsMulti(
+    async customTransactionAsMulti(
         multisigAddress: string,
         tx: SubmittableExtrinsic<"promise">,
         statusGrabber: any,
