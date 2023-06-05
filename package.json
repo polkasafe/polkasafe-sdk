@@ -1,6 +1,6 @@
 {
     "name": "polkasafe",
-    "version": "1.0.6",
+    "version": "1.0.7",
     "description": "",
     "main": "build/index.js",
     "module": "build/index.m.js",
