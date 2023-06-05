@@ -32,6 +32,8 @@ export const voteOnProposalByMultisig = async ({
     let tx;
     if(proposalType === 'referendums_v2'){
         tx = api.tx.convictionVoting.vote(proposalIndex, vote);
+    }else if(proposalType === 'fellowship_referendums'){
+        tx = api.tx.fellowshipCollective.vote(proposalIndex, vote);
     }else{
         tx = api.tx.democracy.vote(proposalIndex, vote);
     }

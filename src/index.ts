@@ -643,12 +643,12 @@ export class Polkasafe extends Base {
     async voteOnProposal(
         multisigAddress: string,
         proposalIndex: number,
-        vote: number,
+        vote: any,
         statusGrabber: any,
         proposalType: any
     ) {
 
-        if (proposalType !== 'referendum' && proposalType !== 'referendums_v2') {
+        if (proposalType !== 'referendum' && proposalType !== 'referendums_v2' && proposalType !== 'fellowship_referendums') {
             throw new Error(`Unsupported proposal type: ${proposalType}`)
         }
 
