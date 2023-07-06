@@ -49,10 +49,11 @@ export const customTransactionByMulti = async ({
     const {data, error} = decodeCallData(callData, api);
     if (error || !data) return {error: 'invalid call data'};
     const decodedCallData = data.extrinsicCall?.toJSON();
-    const amount =
-        decodedCallData?.args?.value ||
-        decodedCallData?.args?.call?.args?.value ||
-        decodedCallData?.args?.calls?.map((item: any) => item?.args?.value) ||
+    
+    const amount =//@ts-ignore
+        decodedCallData?.args?.value ||//@ts-ignore
+        decodedCallData?.args?.call?.args?.value ||//@ts-ignore
+        decodedCallData?.args?.calls?.map((item: any) => item?.args?.value) ||//@ts-ignore
         decodedCallData?.args?.call?.args?.calls?.map(
             (item: any) => item?.args?.value
         ) ||
@@ -72,12 +73,12 @@ export const customTransactionByMulti = async ({
         }
     }
     
-    const recipientAddress =
-        decodedCallData?.args?.dest?.id ||
-        decodedCallData?.args?.call?.args?.dest?.id ||
+    const recipientAddress =//@ts-ignore
+        decodedCallData?.args?.dest?.id ||//@ts-ignore
+        decodedCallData?.args?.call?.args?.dest?.id ||//@ts-ignore
         decodedCallData?.args?.calls?.map(
             (item: any) => item?.args?.dest?.id
-        ) ||
+        ) ||//@ts-ignore
         decodedCallData?.args?.call?.args?.calls?.map(
             (item: any) => item?.args?.dest?.id
         );
