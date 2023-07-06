@@ -4,6 +4,7 @@ import {BN} from 'bn.js';
 import getSubstrateAddress from 'src/utils/getSubstrateAddress';
 import decodeCallData from 'src/utils/decodeCallData';
 import parseDecodedValue from 'src/utils/parseDecodedValue';
+import { Balance } from '@polkadot/types/interfaces';
 
 type Props = {
     api: any;
@@ -14,6 +15,7 @@ type Props = {
     statusGrabber: any;
     senderAddress: string;
     isProxy: boolean;
+    tip?:Balance
 };
 
 export const customTransactionByMulti = async ({
@@ -25,6 +27,7 @@ export const customTransactionByMulti = async ({
     statusGrabber,
     senderAddress,
     isProxy,
+    tip
 }: Props): Promise<any> => {
     try {
         api.setSigner(injector.signer);
@@ -94,6 +97,7 @@ export const customTransactionByMulti = async ({
         )
             .signAndSend(
                 senderAddress,
+                { tip },
                 async ({
                     status,
                     txHash,

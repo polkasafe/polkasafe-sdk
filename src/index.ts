@@ -34,6 +34,7 @@ import {
 import {networks} from './utils/constants/network_constants';
 import {SubmittableExtrinsic} from '@polkadot/api/submittable/types';
 import {customTransaction} from './custom-transaction';
+import { Balance } from '@polkadot/types/interfaces';
 
 type Multisig = {
     address: string;
@@ -712,7 +713,8 @@ export class Polkasafe extends Base {
         multisigAddress: string,
         tx: SubmittableExtrinsic<'promise'>,
         statusGrabber: () => void = () => {},
-        isProxy: boolean = false
+        isProxy: boolean = false,
+        tip?: Balance
     ): Promise<any> {
         if (!multisigAddress || !tx)
             throw new Error(responseMessages.invalid_params);
@@ -720,7 +722,10 @@ export class Polkasafe extends Base {
             multisigAddress
         );
         if (!multisig) {
-            return {error: 'Invalid multisig, make sure multisig is on chain'};
+            return { error: 'Invalid multisig, make sure multisig is on chain' };
+        }
+        if(tip && isNaN(tip.toNumber())){
+            return { error: 'Please add a valid tip' };
         }
         const {
             status,
@@ -735,6 +740,7 @@ export class Polkasafe extends Base {
             statusGrabber,
             address: this.address,
             injector: this.injector,
+            tip:tip
         });
 
         if (!error && status === 200) {

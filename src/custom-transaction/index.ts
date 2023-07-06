@@ -3,6 +3,7 @@ import {chainProperties, networks} from 'src/utils/constants/network_constants';
 import {responseMessages} from 'src/utils/constants/response_messages';
 import {IMultisigAddress} from 'src/utils/globalTypes';
 import {customTransactionByMulti} from './customTransaction';
+import { Balance } from '@polkadot/types/interfaces';
 
 type Props = {
     multisig: IMultisigAddress;
@@ -12,6 +13,7 @@ type Props = {
     injector: any;
     statusGrabber: any;
     isProxy: boolean;
+    tip?:Balance
 };
 
 export async function customTransaction({
@@ -22,6 +24,7 @@ export async function customTransaction({
     tx,
     isProxy,
     statusGrabber = () => {},
+    tip
 }: Props) {
     try {
         if (!Object.values(networks).includes(network))
@@ -43,6 +46,7 @@ export async function customTransaction({
             statusGrabber,
             senderAddress: address,
             isProxy,
+            tip
         };
         const response = await customTransactionByMulti(payload);
         if (!response.message) {
