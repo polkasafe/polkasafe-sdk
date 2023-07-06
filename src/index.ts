@@ -724,9 +724,6 @@ export class Polkasafe extends Base {
         if (!multisig) {
             return { error: 'Invalid multisig, make sure multisig is on chain' };
         }
-        if(tip && isNaN(tip.toNumber())){
-            return { error: 'Please add a valid tip' };
-        }
         const {
             status,
             error,
