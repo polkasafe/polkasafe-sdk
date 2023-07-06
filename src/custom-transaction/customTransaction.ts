@@ -4,7 +4,7 @@ import {BN} from 'bn.js';
 import getSubstrateAddress from 'src/utils/getSubstrateAddress';
 import decodeCallData from 'src/utils/decodeCallData';
 import parseDecodedValue from 'src/utils/parseDecodedValue';
-import { Balance } from '@polkadot/types/interfaces';
+import { BN as BNType } from '@polkadot/util';
 
 type Props = {
     api: any;
@@ -15,7 +15,7 @@ type Props = {
     statusGrabber: any;
     senderAddress: string;
     isProxy: boolean;
-    tip?:Balance
+    tip?: BNType
 };
 
 export const customTransactionByMulti = async ({

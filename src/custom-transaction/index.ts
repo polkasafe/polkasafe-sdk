@@ -3,7 +3,7 @@ import {chainProperties, networks} from 'src/utils/constants/network_constants';
 import {responseMessages} from 'src/utils/constants/response_messages';
 import {IMultisigAddress} from 'src/utils/globalTypes';
 import {customTransactionByMulti} from './customTransaction';
-import { Balance } from '@polkadot/types/interfaces';
+import { BN } from '@polkadot/util';
 
 type Props = {
     multisig: IMultisigAddress;
@@ -13,7 +13,7 @@ type Props = {
     injector: any;
     statusGrabber: any;
     isProxy: boolean;
-    tip?:Balance
+    tip?: BN
 };
 
 export async function customTransaction({
