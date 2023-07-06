@@ -46,7 +46,7 @@ export const customTransactionByMulti = async ({
 
     const callData = api.createType('Call', call.method.toHex());
 
-    const {data, error} = decodeCallData(callData, api);
+    const {data, error} = decodeCallData(call.method.toHex(), api);
     if (error || !data) return {error: error};
     const decodedCallData = data.extrinsicCall?.toJSON();
     
