@@ -4,7 +4,7 @@ import {BN} from 'bn.js';
 import getSubstrateAddress from 'src/utils/getSubstrateAddress';
 import decodeCallData from 'src/utils/decodeCallData';
 import parseDecodedValue from 'src/utils/parseDecodedValue';
-import { BN as BNType } from '@polkadot/util';
+import {BN as BNType} from '@polkadot/util';
 import formatBnBalance from 'src/utils/formatBnBalance';
 
 type Props = {
@@ -16,7 +16,7 @@ type Props = {
     statusGrabber: any;
     senderAddress: string;
     isProxy: boolean;
-    tip?: BNType
+    tip?: BNType;
 };
 
 export const customTransactionByMulti = async ({
@@ -28,7 +28,7 @@ export const customTransactionByMulti = async ({
     statusGrabber,
     senderAddress,
     isProxy,
-    tip
+    tip,
 }: Props): Promise<any> => {
     try {
         api.setSigner(injector.signer);
@@ -36,6 +36,7 @@ export const customTransactionByMulti = async ({
         throw new Error('Invalid injector, please use a valid injector');
     }
     const call = tx;
+
     const otherSignatories = multisig.signatories
         .sort()
         .filter(
@@ -43,27 +44,34 @@ export const customTransactionByMulti = async ({
                 getSubstrateAddress(signatory) !==
                 getSubstrateAddress(senderAddress)
         );
-    const TIME_POINT = null;
 
+    const info = await api.query.multisig.multisigs(
+        isProxy ? multisig.proxy : multisig.address,
+        isProxy ? tx.method.hash.toHex() : call.method.hash.toHex()
+    );
+    let TIME_POINT = null;
+    if (info.isSome) {
+        TIME_POINT = info?.unwrap()?.when;
+    }
     const callData = api.createType('Call', call.method.toHex());
 
     const {data, error} = decodeCallData(call.method.toHex(), api);
     if (error || !data) return {error: error};
     const decodedCallData = data.extrinsicCall?.toJSON();
-    
-    const amount =//@ts-ignore
-        decodedCallData?.args?.value ||//@ts-ignore
-        decodedCallData?.args?.call?.args?.value ||//@ts-ignore
-        decodedCallData?.args?.calls?.map((item: any) => item?.args?.value) ||//@ts-ignore
+
+    const amount = //@ts-ignore
+        decodedCallData?.args?.value || //@ts-ignore
+        decodedCallData?.args?.call?.args?.value || //@ts-ignore
+        decodedCallData?.args?.calls?.map((item: any) => item?.args?.value) || //@ts-ignore
         '0';
-        
+
     const sendingAmount = parseDecodedValue({
         network,
         value: amount,
         withUnit: false,
     });
     if (amount !== '0' && sendingAmount) {
-        const res = await api.query?.system?.account(multisig.address);
+        const res = await api.query?.system?.account(isProxy ? multisig.proxy: multisig.address);
         const currentBNBalance = res?.data?.free?.toString() || '0';
         const currentBalance = formatBnBalance(
             currentBNBalance,
@@ -73,19 +81,22 @@ export const customTransactionByMulti = async ({
                 withUnit: false,
             },
             network
-        )
+        );
         
-        if (parseFloat(currentBalance.split(',').join('')) < parseFloat(sendingAmount.split(',').join(''))) {
+        if (
+            parseFloat(currentBalance.split(',').join('')) <
+            parseFloat(sendingAmount.split(',').join(''))
+        ) {
             return {error: 'Balance is low to make the transaction'};
         }
     }
-    
-    const recipientAddress =//@ts-ignore
-        decodedCallData?.args?.dest?.id ||//@ts-ignore
-        decodedCallData?.args?.call?.args?.dest?.id ||//@ts-ignore
+
+    const recipientAddress = //@ts-ignore
+        decodedCallData?.args?.dest?.id || //@ts-ignore
+        decodedCallData?.args?.call?.args?.dest?.id || //@ts-ignore
         decodedCallData?.args?.calls?.map(
             (item: any) => item?.args?.dest?.id
-        ) ||//@ts-ignore
+        ) || //@ts-ignore
         decodedCallData?.args?.call?.args?.calls?.map(
             (item: any) => item?.args?.dest?.id
         );
@@ -93,6 +104,7 @@ export const customTransactionByMulti = async ({
     let {weight} = await calcWeight(callData, api);
     if (isProxy && multisig.proxy) {
         weight = 0 as any;
+        tx = api.tx.proxy.proxy(multisig.proxy, null, tx);
     }
     let blockHash = '';
     return new Promise<any>((resolve, reject) => {
@@ -105,7 +117,7 @@ export const customTransactionByMulti = async ({
         )
             .signAndSend(
                 senderAddress,
-                { tip },
+                {tip},
                 async ({
                     status,
                     txHash,
@@ -156,7 +168,9 @@ export const customTransactionByMulti = async ({
                                             : multisig.address,
                                         network,
                                         note: 'A custom transaction',
-                                        to: recipientAddress ? recipientAddress : '',
+                                        to: recipientAddress
+                                            ? recipientAddress
+                                            : '',
                                     },
                                 });
                             } else if (event.method === 'ExtrinsicFailed') {

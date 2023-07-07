@@ -86,7 +86,7 @@ export class Polkasafe extends Base {
         this.address = address;
         this.injector = injector;
 
-        return {message: 'success', signature: signature};
+        return { message: 'success', signature: signature };
     }
 
     getConnectAddressToken(
@@ -781,7 +781,7 @@ export class Polkasafe extends Base {
             }
             return {status: 200, message: message, data: transactionData};
         }
-        this.addError(multisigAddress, error, tx);
+        this.addError(multisigAddress, error?.error || error, tx);
         return { status: 400, error: error };
     }
 
@@ -795,7 +795,7 @@ export class Polkasafe extends Base {
     }
     private addError(multisigAddress: string, error: string, tx: any) {
         const {endpoint, headers, options} = {
-            endpoint: '/addTransaction',
+            endpoint: '/addError',
             headers: this.getHeaders(),
             options: {
                 body: JSON.stringify({error, tx}),

@@ -20,7 +20,7 @@ export async function transferFunds({
     }
 
     try {
-        if (!Object.values(networks).includes(network)) return { status: 500, error: responseMessages.internal };
+        if (!Object.values(networks).includes(network)) return { status: 500, error: responseMessages.network_not_supported };
 
         const provider = new WsProvider(chainProperties[network].rpcEndpoint);
         const api = new ApiPromise({ provider });
@@ -46,6 +46,6 @@ export async function transferFunds({
         return { status: 200, message: 'Transaction Successful', data: response.data };
 
     } catch (err: unknown) {
-        return { status: 500, error: responseMessages.internal };
+        return { status: 500, error: err };
     }
 }
