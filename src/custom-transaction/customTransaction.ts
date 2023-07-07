@@ -5,6 +5,7 @@ import getSubstrateAddress from 'src/utils/getSubstrateAddress';
 import decodeCallData from 'src/utils/decodeCallData';
 import parseDecodedValue from 'src/utils/parseDecodedValue';
 import { BN as BNType } from '@polkadot/util';
+import formatBnBalance from 'src/utils/formatBnBalance';
 
 type Props = {
     api: any;
@@ -54,21 +55,27 @@ export const customTransactionByMulti = async ({
         decodedCallData?.args?.value ||//@ts-ignore
         decodedCallData?.args?.call?.args?.value ||//@ts-ignore
         decodedCallData?.args?.calls?.map((item: any) => item?.args?.value) ||//@ts-ignore
-        decodedCallData?.args?.call?.args?.calls?.map(
-            (item: any) => item?.args?.value
-        ) ||
         '0';
-    const token = parseDecodedValue({
+        
+    const sendingAmount = parseDecodedValue({
         network,
         value: amount,
         withUnit: false,
     });
-
-    const sendingAmount = Number(token);
-    if (!isNaN(sendingAmount)) {
+    if (amount !== '0' && sendingAmount) {
         const res = await api.query?.system?.account(multisig.address);
-        const currentBalance = res?.data?.free?.toString() || '0';
-        if (Number(currentBalance) < sendingAmount) {
+        const currentBNBalance = res?.data?.free?.toString() || '0';
+        const currentBalance = formatBnBalance(
+            currentBNBalance,
+            {
+                numberAfterComma: 3,
+                withThousandDelimitor: false,
+                withUnit: false,
+            },
+            network
+        )
+        
+        if (parseFloat(currentBalance.split(',').join('')) < parseFloat(sendingAmount.split(',').join(''))) {
             return {error: 'Balance is low to make the transaction'};
         }
     }
@@ -136,9 +143,7 @@ export const customTransactionByMulti = async ({
                                 resolve({
                                     message: 'success',
                                     data: {
-                                        amount: sendingAmount
-                                            ? new BN(sendingAmount)
-                                            : new BN(0),
+                                        amount: sendingAmount || new BN('0'),
                                         block_number: blockNumber,
                                         callData: isProxy
                                             ? tx.method.toHex()
