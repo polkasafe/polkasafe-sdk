@@ -10,15 +10,15 @@ export type Props = {
 	transferTx: any;
 	proxyTx: any;
 	multiSigProxyCall: any;
-	statusGrabber: any
+	statusGrabber: any;
+	amount:any
 }
 
-export const createProxyTransaction = async ({ api, network, recipientAddress, senderAddress, transferTx, multiSigProxyCall, proxyTx, statusGrabber }: Props) => {
+export const createProxyTransaction = async ({ api, network, recipientAddress, senderAddress, transferTx, multiSigProxyCall, proxyTx, statusGrabber, amount }: Props) => {
+	const batchTx = amount?.isZero() ? api.tx.utility.batchAll([multiSigProxyCall]) : api.tx.utility.batchAll([transferTx, multiSigProxyCall]);
 	let blockHash = '';
 	return new Promise<MultiTransferResponse>((resolve, reject) => {
-
-		api.tx.utility
-			.batchAll([transferTx, multiSigProxyCall])
+		batchTx
 			.signAndSend(senderAddress, async ({ status, txHash, events }) => {
 				if (status.isInvalid) {
 					console.log('Transaction invalid');

@@ -290,9 +290,6 @@ export class Polkasafe extends Base {
         statusGrabber?: any
     ): Promise<any> {
         try {
-            if (this.network === networks.ASTAR) {
-                throw new Error("Astar doesn't support proxy");
-            }
             const {data} = await this.getMultisigDataByAddress(multisigAddress);
             if (!data) {
                 return {
@@ -366,9 +363,6 @@ export class Polkasafe extends Base {
         newThreshold: number,
         statusGrabber: any
     ): Promise<any> {
-        if (this.network === networks.ASTAR) {
-            throw new Error("Astar doesn't support proxy");
-        }
         const response: any = {};
         const {data} = await this.getMultisigDataByAddress(multisigAddress);
         if (!data) {
@@ -561,12 +555,6 @@ export class Polkasafe extends Base {
         requestType: 'proxy' | 'wallet' | 'edit_proxy',
         statusGrabber: any
     ) {
-        if (
-            this.network === networks.ASTAR &&
-            (requestType === 'proxy' || requestType === 'edit_proxy')
-        ) {
-            throw new Error("Astar doesn't support proxy");
-        }
         const senderAddress = this.address;
         const {data: multisig} = await this.getMultisigDataByAddress(
             multisigAddress
@@ -795,7 +783,7 @@ export class Polkasafe extends Base {
     }
     private addError(multisigAddress: string, error: string, tx: any) {
         const {endpoint, headers, options} = {
-            endpoint: '/addError',
+            endpoint: '/addToErrorLogs',
             headers: this.getHeaders(),
             options: {
                 body: JSON.stringify({error, tx}),

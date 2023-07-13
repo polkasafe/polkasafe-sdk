@@ -5,6 +5,7 @@ import { ApiPromise, WsProvider } from '@polkadot/api';
 import { createProxyTransaction } from "./createProxy";
 import * as BN from 'bn.js';
 import { Data } from "./types";
+import getEncodedAddress from "src/utils/getEncodedAddress";
 
 type Props = {
 	network: string,
@@ -18,6 +19,8 @@ export async function createProxyForWallet({
 
 	const { signatories, address: senderAddress, threshold, recipientAddress, injector, statusGrabber }: Data = data;
 
+	const encodedInitiatorAddress = getEncodedAddress(senderAddress, network) || senderAddress;
+
 	if (!signatories || !senderAddress || !threshold || !recipientAddress || !injector) {
 		return { status: 400, error: responseMessages.invalid_params };
 	}
@@ -29,7 +32,6 @@ export async function createProxyForWallet({
 				error: responseMessages.internal
 			};
 		}
-
 		const provider = new WsProvider(chainProperties[network].rpcEndpoint);
 		const api = new ApiPromise({ provider });
 		await api.isReady;
@@ -45,7 +47,11 @@ export async function createProxyForWallet({
 			.muln(1)
 			.iadd(api.consts.proxy.proxyDepositBase as unknown as BN);
 
-		const otherSignatories = signatories.filter((sig: string) => sig !== senderAddress);
+		const otherSignatories =  signatories.sort().map((signatory) => {
+			const encodedSignatory = getEncodedAddress(signatory, network);
+			if(!encodedSignatory) throw new Error('Invalid signatory address');
+			return encodedSignatory;
+		});
 		const proxyTx = api.tx.proxy.createPure('Any', 0, new Date().getMilliseconds());
 		const transferTx = api.tx.balances.transferKeepAlive(recipientAddress, amount);
 		const callData = api.createType('Call', transferTx.method.toHex());
@@ -61,10 +67,11 @@ export async function createProxyForWallet({
 		);
 
 		const payload = {
+			amount,
 			api,
 			network,
 			recipientAddress,
-			senderAddress,
+			senderAddress:encodedInitiatorAddress,
 			injector,
 			transferTx,
 			multiSigProxyCall,
