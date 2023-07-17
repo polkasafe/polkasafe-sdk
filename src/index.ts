@@ -1,29 +1,28 @@
 import '@polkadot/api-augment';
-import {addToAddressBook} from './add-to-address-book';
-import {approveTransaction} from './approve-transaction';
-import {Base} from './base';
-import {cancelTransaction} from './cancel-transaction';
-import {connectAddress} from './connect-address';
-import {createMultisig} from './create-multisig';
-import {createProxyForWallet} from './create-proxy';
-import {deleteMultisig} from './delete-multisig';
-import {editMultisigProxy} from './edit-multisig';
-import {getAllMultisigByAddress} from './get-all-multisig-by-address';
-import {getAssetsForAddress} from './get-assets-for-address';
-import {getConnectAddressToken} from './get-connect-address-token';
-import {getMultisigDataByMultisigAddress} from './get-multisig-data-by-address';
-import {getMultisigQueue} from './get-multisig-queue';
-import {getTransactionsForMultisig} from './get-transactions-for-multisig';
-import {removeFromAddressBook} from './remove-from-address-book';
-import {renameMultisig} from './rename-multisig';
-import {sendNotification} from './send-notifications';
-import {transferFunds} from './transfer-funds';
-import {handleHeaders} from './utils/handleHeaders';
+import { addToAddressBook } from './add-to-address-book';
+import { approveTransaction } from './approve-transaction';
+import { Base } from './base';
+import { cancelTransaction } from './cancel-transaction';
+import { connectAddress } from './connect-address';
+import { createMultisig } from './create-multisig';
+import { createProxyForWallet } from './create-proxy';
+import { deleteMultisig } from './delete-multisig';
+import { editMultisigProxy } from './edit-multisig';
+import { getAllMultisigByAddress } from './get-all-multisig-by-address';
+import { getAssetsForAddress } from './get-assets-for-address';
+import { getConnectAddressToken } from './get-connect-address-token';
+import { getMultisigDataByMultisigAddress } from './get-multisig-data-by-address';
+import { getMultisigQueue } from './get-multisig-queue';
+import { getTransactionsForMultisig } from './get-transactions-for-multisig';
+import { removeFromAddressBook } from './remove-from-address-book';
+import { renameMultisig } from './rename-multisig';
+import { sendNotification } from './send-notifications';
+import { transferFunds } from './transfer-funds';
+import { handleHeaders } from './utils/handleHeaders';
 import formatBnBalance from './utils/formatBnBalance';
-import {voteOnProposal} from './vote-on-proposal';
-import {stringToHex} from '@polkadot/util';
-import {responseMessages} from './utils/constants/response_messages';
-import {Injected} from '@polkadot/extension-inject/types';
+import { voteOnProposal } from './vote-on-proposal';
+import { stringToHex } from '@polkadot/util';
+import { responseMessages } from './utils/constants/response_messages';
 import {
     IAddressBook,
     IAsset,
@@ -31,9 +30,9 @@ import {
     IQueueItem,
     ITransaction,
 } from './utils/globalTypes';
-import {networks} from './utils/constants/network_constants';
-import {SubmittableExtrinsic} from '@polkadot/api/submittable/types';
-import {customTransaction} from './custom-transaction';
+import { networks } from './utils/constants/network_constants';
+import { SubmittableExtrinsic } from '@polkadot/api/submittable/types';
+import { customTransaction } from './custom-transaction';
 import { BN } from '@polkadot/util';
 
 type Multisig = {
@@ -60,22 +59,22 @@ export class Polkasafe extends Base {
     async connect(
         network: string,
         address: string,
-        injector: Injected
-    ): Promise<{message: string; signature: string}> {
+        injector: any
+    ): Promise<{ message: string; signature: string }> {
         if (!network || !address || !injector) {
             throw new Error(responseMessages.missing_params);
         }
         if (!Object.values(networks).includes(network)) {
             throw new Error(responseMessages.invalid_params);
         }
-        const {data: token} = await this.getConnectAddressToken(address);
+        const { data: token } = await this.getConnectAddressToken(address);
 
         const signRaw = injector && injector.signer && injector.signer.signRaw;
         if (!signRaw) {
             throw new Error('Signer not available');
         }
 
-        const {signature} = await signRaw({
+        const { signature } = await signRaw({
             address: address,
             data: stringToHex(token),
             type: 'bytes',
@@ -91,19 +90,19 @@ export class Polkasafe extends Base {
 
     getConnectAddressToken(
         address: string
-    ): Promise<{data: string; error: string | undefined}> {
-        const {endpoint, headers, options} = getConnectAddressToken(address);
+    ): Promise<{ data: string; error: string | undefined }> {
+        const { endpoint, headers, options } = getConnectAddressToken(address);
         return this.request(
             endpoint,
-            {...headers, ...handleHeaders({address})},
+            { ...headers, ...handleHeaders({ address }) },
             options
         );
     }
 
     connectAddress(
         address: string
-    ): Promise<{data: IMultisigAddress; error: string | undefined}> {
-        const {endpoint, headers, options} = connectAddress(
+    ): Promise<{ data: IMultisigAddress; error: string | undefined }> {
+        const { endpoint, headers, options } = connectAddress(
             address,
             this.network,
             this.signature
@@ -114,14 +113,14 @@ export class Polkasafe extends Base {
     addToAddressBook(
         address: string,
         name: string
-    ): Promise<{data: Array<IAddressBook>; error: string | undefined}> {
-        const {endpoint, headers, options} = addToAddressBook({
+    ): Promise<{ data: Array<IAddressBook>; error: string | undefined }> {
+        const { endpoint, headers, options } = addToAddressBook({
             name,
             addressToAdd: address,
         });
         return this.request(
             endpoint,
-            {...headers, ...this.getHeaders()},
+            { ...headers, ...this.getHeaders() },
             options
         );
     }
@@ -129,14 +128,14 @@ export class Polkasafe extends Base {
     removeFromAddressBook(
         address: string,
         name: string
-    ): Promise<{data: Array<IAddressBook>; error: string | undefined}> {
-        const {endpoint, headers, options} = removeFromAddressBook({
+    ): Promise<{ data: Array<IAddressBook>; error: string | undefined }> {
+        const { endpoint, headers, options } = removeFromAddressBook({
             name,
             addressToRemove: address,
         });
         return this.request(
             endpoint,
-            {...headers, ...this.getHeaders()},
+            { ...headers, ...this.getHeaders() },
             options
         );
     }
@@ -148,7 +147,7 @@ export class Polkasafe extends Base {
         type: 'wallet' | 'proxy',
         proxy?: string
     ): Promise<any> {
-        const {endpoint, headers, options} = createMultisig({
+        const { endpoint, headers, options } = createMultisig({
             signatories,
             threshold,
             multisigName,
@@ -158,21 +157,21 @@ export class Polkasafe extends Base {
         });
         return this.request(
             endpoint,
-            {...headers, ...this.getHeaders()},
+            { ...headers, ...this.getHeaders() },
             options
         );
     }
 
     getMultisigDataByAddress(
         multisigAddress: string
-    ): Promise<{data: IMultisigAddress; error: string | undefined}> {
-        const {endpoint, headers, options} = getMultisigDataByMultisigAddress({
+    ): Promise<{ data: IMultisigAddress; error: string | undefined }> {
+        const { endpoint, headers, options } = getMultisigDataByMultisigAddress({
             multisigAddress,
             network: this.network,
         });
         return this.request(
             endpoint,
-            {...headers, ...this.getHeaders()},
+            { ...headers, ...this.getHeaders() },
             options
         );
     }
@@ -181,8 +180,8 @@ export class Polkasafe extends Base {
         multisigAddress: string,
         page: number,
         limit: number
-    ): Promise<{data: Array<ITransaction>; error: string | undefined}> {
-        const {endpoint, headers, options} = getTransactionsForMultisig({
+    ): Promise<{ data: Array<ITransaction>; error: string | undefined }> {
+        const { endpoint, headers, options } = getTransactionsForMultisig({
             multisigAddress,
             page,
             limit,
@@ -190,7 +189,7 @@ export class Polkasafe extends Base {
         });
         return this.request(
             endpoint,
-            {...headers, ...this.getHeaders()},
+            { ...headers, ...this.getHeaders() },
             options
         );
     }
@@ -199,8 +198,8 @@ export class Polkasafe extends Base {
         multisigAddress: string,
         page: number,
         limit: number
-    ): Promise<{data: Array<IAsset>; error: string | undefined}> {
-        const {endpoint, headers, options} = getAssetsForAddress({
+    ): Promise<{ data: Array<IAsset>; error: string | undefined }> {
+        const { endpoint, headers, options } = getAssetsForAddress({
             multisigAddress,
             page,
             limit,
@@ -208,7 +207,7 @@ export class Polkasafe extends Base {
         });
         return this.request(
             endpoint,
-            {...headers, ...this.getHeaders()},
+            { ...headers, ...this.getHeaders() },
             options
         );
     }
@@ -217,15 +216,15 @@ export class Polkasafe extends Base {
         multisigAddress: string,
         page: number,
         limit: number
-    ): Promise<{data: Array<IQueueItem>; error: string | undefined}> {
-        const {endpoint, headers, options} = getMultisigQueue({
+    ): Promise<{ data: Array<IQueueItem>; error: string | undefined }> {
+        const { endpoint, headers, options } = getMultisigQueue({
             multisigAddress,
             page,
             limit,
         });
         return this.request(
             endpoint,
-            {...headers, ...this.getHeaders()},
+            { ...headers, ...this.getHeaders() },
             options
         );
     }
@@ -233,14 +232,14 @@ export class Polkasafe extends Base {
     renameMultisig(
         multisigAddress: string,
         name: string
-    ): Promise<{data: string; error: string | undefined}> {
-        const {endpoint, headers, options} = renameMultisig({
+    ): Promise<{ data: string; error: string | undefined }> {
+        const { endpoint, headers, options } = renameMultisig({
             multisigAddress,
             name,
         });
         return this.request(
             endpoint,
-            {...headers, ...this.getHeaders()},
+            { ...headers, ...this.getHeaders() },
             options
         );
     }
@@ -251,7 +250,7 @@ export class Polkasafe extends Base {
         message: string,
         type: string
     ): Promise<any> {
-        const {endpoint, headers, options} = sendNotification({
+        const { endpoint, headers, options } = sendNotification({
             addresses,
             link,
             message,
@@ -259,14 +258,14 @@ export class Polkasafe extends Base {
         });
         return this.request(
             endpoint,
-            {...headers, ...this.getHeaders()},
+            { ...headers, ...this.getHeaders() },
             options
         );
     }
 
     // Aleem TODO: currently not using, need to discuss
     getNotifications(): Promise<any> {
-        const {endpoint, headers, options} = {
+        const { endpoint, headers, options } = {
             endpoint: '/getNotifications',
             headers: this.getHeaders(),
             options: {},
@@ -276,11 +275,11 @@ export class Polkasafe extends Base {
 
     deleteMultisig(
         multisigAddress: string
-    ): Promise<{data: string; error: string | undefined}> {
-        const {endpoint, headers, options} = deleteMultisig(multisigAddress);
+    ): Promise<{ data: string; error: string | undefined }> {
+        const { endpoint, headers, options } = deleteMultisig(multisigAddress);
         return this.request(
             endpoint,
-            {...headers, ...this.getHeaders()},
+            { ...headers, ...this.getHeaders() },
             options
         );
     }
@@ -290,13 +289,13 @@ export class Polkasafe extends Base {
         statusGrabber?: any
     ): Promise<any> {
         try {
-            const {data} = await this.getMultisigDataByAddress(multisigAddress);
+            const { data } = await this.getMultisigDataByAddress(multisigAddress);
             if (!data) {
                 return {
                     error: 'Invalid multisig, make sure multisig is on chain',
                 };
             }
-            const emptyFunction = () => {};
+            const emptyFunction = () => { };
             const payload = {
                 signatories: data.signatories,
                 address: this.address,
@@ -305,7 +304,7 @@ export class Polkasafe extends Base {
                 injector: this.injector,
                 statusGrabber: statusGrabber || emptyFunction,
             };
-            const {error, status, message, transactionData} =
+            const { error, status, message, transactionData } =
                 await createProxyForWallet({
                     network: this.network,
                     data: payload,
@@ -333,7 +332,7 @@ export class Polkasafe extends Base {
                         note: transactionData.note,
                         to: transactionData.to,
                     };
-                    const {endpoint, headers, options} = {
+                    const { endpoint, headers, options } = {
                         endpoint: '/addTransaction',
                         headers: this.getHeaders(),
                         options: {
@@ -343,17 +342,17 @@ export class Polkasafe extends Base {
                     };
                     this.request(
                         endpoint,
-                        {...headers, ...this.getHeaders()},
+                        { ...headers, ...this.getHeaders() },
                         options
                     );
                 } catch (e) {
                     console.log(e);
                 }
-                return {status: 200, message: message, data: transactionData};
+                return { status: 200, message: message, data: transactionData };
             }
-            return {status, error};
+            return { status, error };
         } catch (err) {
-            return {error: responseMessages.internal, message: err};
+            return { error: responseMessages.internal, message: err };
         }
     }
 
@@ -364,11 +363,11 @@ export class Polkasafe extends Base {
         statusGrabber: any
     ): Promise<any> {
         const response: any = {};
-        const {data} = await this.getMultisigDataByAddress(multisigAddress);
+        const { data } = await this.getMultisigDataByAddress(multisigAddress);
         if (!data) {
-            return {error: 'Invalid multisig, make sure multisig is on chain'};
+            return { error: 'Invalid multisig, make sure multisig is on chain' };
         }
-        const emptyFucn = () => {};
+        const emptyFucn = () => { };
         const payload = {
             multisigAddress,
             oldSignatories: data.signatories,
@@ -380,7 +379,7 @@ export class Polkasafe extends Base {
             multisigName: data.name,
             statusGrabber: statusGrabber || emptyFucn,
         };
-        const {addNewMultiResponse, removeOldMultiResponse, newMulti} =
+        const { addNewMultiResponse, removeOldMultiResponse, newMulti } =
             await editMultisigProxy({
                 address: this.address,
                 network: this.network,
@@ -388,7 +387,7 @@ export class Polkasafe extends Base {
                 data: payload,
             });
         if (!addNewMultiResponse.error && addNewMultiResponse.status === 200) {
-            const {status, transactionData} = addNewMultiResponse;
+            const { status, transactionData } = addNewMultiResponse;
 
             const newTransactionData = {
                 amount_token: Number(
@@ -410,7 +409,7 @@ export class Polkasafe extends Base {
                 note: transactionData.note,
                 to: transactionData.to,
             };
-            const {endpoint, headers, options} = {
+            const { endpoint, headers, options } = {
                 endpoint: '/addTransaction',
                 headers: this.getHeaders(),
                 options: {
@@ -418,7 +417,7 @@ export class Polkasafe extends Base {
                     method: 'POST',
                 },
             };
-            this.request(endpoint, {...headers, ...this.getHeaders()}, options);
+            this.request(endpoint, { ...headers, ...this.getHeaders() }, options);
             response.addNewMultiResponse = {
                 status: status,
                 data: transactionData,
@@ -428,7 +427,7 @@ export class Polkasafe extends Base {
             !removeOldMultiResponse.error &&
             removeOldMultiResponse.status === 200
         ) {
-            const {status, transactionData} = removeOldMultiResponse;
+            const { status, transactionData } = removeOldMultiResponse;
 
             const newTransactionData = {
                 amount_token: Number(
@@ -450,7 +449,7 @@ export class Polkasafe extends Base {
                 note: transactionData.note,
                 to: transactionData.to,
             };
-            const {endpoint, headers, options} = {
+            const { endpoint, headers, options } = {
                 endpoint: '/addTransaction',
                 headers: this.getHeaders(),
                 options: {
@@ -458,7 +457,7 @@ export class Polkasafe extends Base {
                     method: 'POST',
                 },
             };
-            this.request(endpoint, {...headers, ...this.getHeaders()}, options);
+            this.request(endpoint, { ...headers, ...this.getHeaders() }, options);
             response.removeOldMultiResponse = {
                 status: status,
                 data: transactionData,
@@ -486,7 +485,7 @@ export class Polkasafe extends Base {
         isProxy: boolean,
         statusGrabber: any
     ): Promise<any> {
-        const emptyFucn = () => {};
+        const emptyFucn = () => { };
         const payload = {
             recipientAddress,
             amount,
@@ -527,7 +526,7 @@ export class Polkasafe extends Base {
                     note: transactionData.note,
                     to: transactionData.to,
                 };
-                const {endpoint, headers, options} = {
+                const { endpoint, headers, options } = {
                     endpoint: '/addTransaction',
                     headers: this.getHeaders(),
                     options: {
@@ -537,15 +536,15 @@ export class Polkasafe extends Base {
                 };
                 this.request(
                     endpoint,
-                    {...headers, ...this.getHeaders()},
+                    { ...headers, ...this.getHeaders() },
                     options
                 );
             } catch (e) {
                 console.log(e);
             }
-            return {status: 200, message: message, data: transactionData};
+            return { status: 200, message: message, data: transactionData };
         }
-        return {status, error};
+        return { status, error };
     }
 
     async approveTransaction(
@@ -556,13 +555,13 @@ export class Polkasafe extends Base {
         statusGrabber: any
     ) {
         const senderAddress = this.address;
-        const {data: multisig} = await this.getMultisigDataByAddress(
+        const { data: multisig } = await this.getMultisigDataByAddress(
             multisigAddress
         );
         if (!multisig) {
-            return {error: 'Invalid multisig, make sure multisig is on chain'};
+            return { error: 'Invalid multisig, make sure multisig is on chain' };
         }
-        const emptyFucn = () => {};
+        const emptyFucn = () => { };
         const data = {
             senderAddress,
             injector: this.injector,
@@ -606,7 +605,7 @@ export class Polkasafe extends Base {
                         note: transactionData.note,
                         to: transactionData.to,
                     };
-                    const {endpoint, headers, options} = {
+                    const { endpoint, headers, options } = {
                         endpoint: '/addTransaction',
                         headers: this.getHeaders(),
                         options: {
@@ -616,15 +615,15 @@ export class Polkasafe extends Base {
                     };
                     this.request(
                         endpoint,
-                        {...headers, ...this.getHeaders()},
+                        { ...headers, ...this.getHeaders() },
                         options
                     );
                 }
-                return {status: 200, message: message, data: transactionData};
+                return { status: 200, message: message, data: transactionData };
             }
-            return {status: 200, message: message};
+            return { status: 200, message: message };
         }
-        return {status, error};
+        return { status, error };
     }
 
     async cancelTransaction(
@@ -632,28 +631,28 @@ export class Polkasafe extends Base {
         callHash: any,
         statusGrabber: any
     ) {
-        const {data: multisig} = await this.getMultisigDataByAddress(
+        const { data: multisig } = await this.getMultisigDataByAddress(
             multisigAddress
         );
         if (!multisig) {
-            return {error: 'Invalid multisig, make sure multisig is on chain'};
+            return { error: 'Invalid multisig, make sure multisig is on chain' };
         }
-        const emptyFucn = () => {};
+        const emptyFucn = () => { };
         const data = {
             injector: this.injector,
             multisig,
             callHash,
             statusGrabber: statusGrabber || emptyFucn,
         };
-        const {status, error, message} = await cancelTransaction({
+        const { status, error, message } = await cancelTransaction({
             address: this.address,
             network: this.network,
             data,
         });
         if (!error && status === 200) {
-            return {status: 200, message: message};
+            return { status: 200, message: message };
         }
-        return {status, error};
+        return { status, error };
     }
 
     async voteOnProposal(
@@ -671,13 +670,13 @@ export class Polkasafe extends Base {
             throw new Error(`Unsupported proposal type: ${proposalType}`);
         }
 
-        const {data: multisig} = await this.getMultisigDataByAddress(
+        const { data: multisig } = await this.getMultisigDataByAddress(
             multisigAddress
         );
         if (!multisig) {
-            return {error: 'Invalid multisig, make sure multisig is on chain'};
+            return { error: 'Invalid multisig, make sure multisig is on chain' };
         }
-        const emptyFucn = () => {};
+        const emptyFucn = () => { };
         const data = {
             injector: this.injector,
             multisig,
@@ -686,27 +685,27 @@ export class Polkasafe extends Base {
             proposalType,
             vote,
         };
-        const {status, error, message} = await voteOnProposal({
+        const { status, error, message } = await voteOnProposal({
             address: this.address,
             network: this.network,
             data,
         });
         if (!error && status === 200) {
-            return {status: 200, message: message};
+            return { status: 200, message: message };
         }
-        return {status, error};
+        return { status, error };
     }
 
     async customTransactionAsMulti(
         multisigAddress: string,
         tx: SubmittableExtrinsic<'promise'>,
-        statusGrabber: () => void = () => {},
+        statusGrabber: (message?: string) => void = () => { },
         isProxy: boolean = false,
         tip?: BN
     ): Promise<any> {
         if (!multisigAddress || !tx)
             throw new Error(responseMessages.invalid_params);
-        const {data: multisig} = await this.getMultisigDataByAddress(
+        const { data: multisig } = await this.getMultisigDataByAddress(
             multisigAddress
         );
         if (!multisig) {
@@ -750,7 +749,7 @@ export class Polkasafe extends Base {
                     note: transactionData.note,
                     to: transactionData.to,
                 };
-                const {endpoint, headers, options} = {
+                const { endpoint, headers, options } = {
                     endpoint: '/addTransaction',
                     headers: this.getHeaders(),
                     options: {
@@ -760,14 +759,14 @@ export class Polkasafe extends Base {
                 };
                 this.request(
                     endpoint,
-                    {...headers, ...this.getHeaders()},
+                    { ...headers, ...this.getHeaders() },
                     options
                 );
             } catch (e) {
                 this.addError(multisigAddress, e, tx);
                 console.log(e);
             }
-            return {status: 200, message: message, data: transactionData};
+            return { status: 200, message: message, data: transactionData };
         }
         this.addError(multisigAddress, error?.error || error, tx);
         return { status: 400, error: error };
@@ -778,21 +777,21 @@ export class Polkasafe extends Base {
             const response = await getAllMultisigByAddress(address, network);
             return response;
         } catch (e) {
-            return {status: 400, error: e};
+            return { status: 400, error: e };
         }
     }
     private addError(multisigAddress: string, error: string, tx: any) {
-        const {endpoint, headers, options} = {
+        const { endpoint, headers, options } = {
             endpoint: '/addToErrorLogs',
             headers: this.getHeaders(),
             options: {
-                body: JSON.stringify({error, tx}),
+                body: JSON.stringify({ error, tx }),
                 method: 'POST',
             },
         };
         this.request(
             endpoint,
-            {...headers, 'x-multisig-address': multisigAddress},
+            { ...headers, 'x-multisig-address': multisigAddress },
             options
         );
     }
