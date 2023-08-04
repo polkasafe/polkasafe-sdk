@@ -1,47 +1,82 @@
-# Typescript Monorepo Template
+# Introducing Polkasafe SDK:
 
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fp-j%2Ftypescript-monorepo-template.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fp-j%2Ftypescript-monorepo-template?ref=badge_shield)
+Simplifying Multi-Sig Interactions for Polkadot Network
+Polkasafe SDK revolutionizes the way you interact with your multi-signature (multi-sig) setups, offering a seamless experience that simplifies the complexities of working with the PolkadotJS API. Our SDK empowers developers by providing intuitive tools to effortlessly engage with their multi-sig configurations.
+With Polkasafe, the process of interacting with your multi-sig becomes incredibly smooth and efficient. Say goodbye to the intricate intricacies that once accompanied PolkadotJS API usage. Our SDK streamlines the entire workflow, enabling you to effortlessly interact with your multi-sig without compromising on functionality or security.
+Unlock a new level of convenience and productivity as you navigate the Polkadot network. Polkasafe SDK empowers you to focus on building innovative solutions, abstracting away the underlying intricacies and offering a user-friendly experience that unleashes your development potential.
 
-This template is intended for OSS (NPM published) Typescript based projects and is centered around a few tools:
+`Note: Polkasafe SDK currently support Polkadot, Kusama, Aster, Rococo and Westend networks`
 
-- **yarn** for dependency management and running other tools like `lerna` or `changeset`
-- **lerna** for running package level commands (like `build` or `lint`)
-- **changeset** for managing changelog generation, release creation and auto publication to NPM
-- **codecov** for code coverage reporting
-- **prettier** for code formatting (it runs a prettier action that will fix any issue for you :sparkles:)
-- **jest** to test your code
-- **typescript** as the name would have suggested
+## Installation
 
-It's a template that I tend to use for my own projects like
+Setting up the Polkasafe SDK is a straightforward process. Here's a step-by-step guide to installing and using the SDK:
 
-- [EAPI](https://github.com/p-j/eapi): a suite of middleware & utility to build scalable cloudflare workers backend/proxy
-- [GeocodeJSON](https://github.com/p-j/geocodejson): a suite of adapter & utility for geocoding API that maps to [GeocodeJSON](https://github.com/geocoders/geocodejson-spec/tree/master/draft) resutls
 
-## How to use this template
+`Install the SDK using npm or yarn:`
 
-_AKA: "Note to self"_
+```javascript
+// npm
+npm install polkasafe
+```
 
-- Get started by clicking [Use this template](https://github.com/p-j/typescript-monorepo-template/generate)
-- Update the required files as [described below](https://github.com/p-j/typescript-monorepo-template#what-you-need-to-change)
-- Use `yarn` for dependencies as this template make use of [Yarn Workspaces](https://classic.yarnpkg.com/en/docs/workspaces/)
-- Browse the scripts to understand how `lerna` `changeset` and `yarn` play together to `build` `test` and `publish` releases.
-- [Setup integration](https://github.com/settings/installations) with [Changeset](https://github.com/atlassian/changesets)
-- [Setup integration](https://github.com/settings/installations) with [CodeCov](https://github.com/codecov)
-- Add the necessary `SECRETS` (`NPM_TOKEN` & `CODECOV_TOKEN`)
+# Geting started
 
-## What you need to change
+Setting up the Polkasafe SDK is a straightforward process.
+Here's a step-by-step guide to installing and using the SDK:
 
-- `package.json`: change project name, author etc...
-- `LICENSE`: change the copyright holder
-- `CODE_OF_CONDUCT.md`: change the contact address in the `Enforcement` paragraph
-- `.github/workflows/release.yml`: change the guard to your repository name
-- `.changeset/config.json`: change the repository name
+Creating an Instance
+```javascript
+import Polkasafe from 'polkasafe-sdk';
+const client = new Polkasafe();
+```
+`NOTE: Connecting with polkasafe is essential. Before using any functions, use connect function to set the network, address, and injector.`
 
-## TODO
+```javascript
+/**
+ * @param {string} network
+ * @param {string} address
+ * @param {Injected} injector
+ */
+// injector: Simplify transaction signing and submission using the injector parameter
+client.connect(network, address, injector)
+```
 
-- Investigate NPM 7.6 vs Yarn v2
-- Investigate esbuild
+Replace network, address, and injector with your specific values. That's it! You have now set up the Polkasafe SDK and you are ready to start using it in your application.
 
-## License
+# Usage Guide:
+Here are the core functionalities of the Polkasafe SDK for managing multi-signature (multisig) wallets:
 
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fp-j%2Ftypescript-monorepo-template.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fp-j%2Ftypescript-monorepo-template?ref=badge_large)
+- **Connect Address**
+
+- **Add to Address Book**
+
+- **Remove from Address Book**
+
+- **Create Multisig**
+
+- **Get Multisig Data by Address**
+
+- **Get Transactions for Multisig**
+
+- **Get Assets for Multisig Address**
+
+- **Get Multisig Queue**
+
+- **Rename Multisig**
+
+- **Delete Multisig**
+
+- **Create Proxy**
+
+- **Edit Multisig**
+
+- **Transfer Funds**
+
+- **Approve Transaction**
+
+- **Cancel Transaction**
+
+- **Vote on Proposal***
+
+
+These core functionalities of the Polkasafe SDK provide developers with comprehensive tools for managing multisig wallets, including connecting to addresses, managing the address book, creating and configuring multisig wallets, retrieving wallet information, handling transactions, approving or canceling transactions, and participating in governance-related activities.

@@ -1,26 +1,3 @@
-# OS X
-.DS_Store*
-Icon?
-._*
-
-# Windows
-Thumbs.db
-ehthumbs.db
-Desktop.ini
-
-# Linux
-.directory
-*~
-
-# Build/Test/Dependencies
-coverage
 node_modules
-dist
-
-# Dev env files
-*.log*
-*.sublime-project
-*.sublime-workspace
-.idea
-# .vscode
-.env
+build
+package-lock.json

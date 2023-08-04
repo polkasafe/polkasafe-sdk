@@ -1,23 +1,15 @@
 {
-  "compilerOptions": {
-    "declaration": true,
-    "preserveSymlinks": true,
-    "target": "esnext",
-    "module": "commonjs",
-    "lib": ["esnext", "webworker"],
-    "moduleResolution": "node",
-    "alwaysStrict": true,
-    "noImplicitAny": true,
-    "noImplicitReturns": true,
-    "noImplicitThis": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "preserveConstEnums": true,
-    "sourceMap": true,
-    "strict": true,
-    "strictBindCallApply": true,
-    "strictFunctionTypes": true,
-    "strictNullChecks": true,
-    "strictPropertyInitialization": true
+    "compilerOptions": {
+      "module": "commonjs",
+      "declaration": true,
+      "removeComments": true,
+      "allowSyntheticDefaultImports": true,
+      "target": "es2017",
+      "sourceMap": false,
+      "outDir": "./build",
+      "baseUrl": "./",
+      "incremental": true
+    },
+    "include": ["src/**/*"],
+    "exclude": ["node_modules", "test", "lib", "**/*spec.ts"]
   }
-}
