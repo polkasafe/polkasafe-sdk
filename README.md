@@ -353,4 +353,4 @@ else if(error){
 
 
 
-These are some core functionalities, feel free to read our more about [Polkasafe SDK](https://polkasafe.gitbook.io/polkasafe-sdk).
+These are some core functionalities, feel free to read more about [Polkasafe SDK](https://polkasafe.gitbook.io/polkasafe-sdk).
