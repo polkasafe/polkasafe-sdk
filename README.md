@@ -47,6 +47,21 @@ Replace network, address, and injector with your specific values. That's it! You
 Here are the core functionalities of the Polkasafe SDK for managing multi-signature (multisig) wallets:
 
 - **Connect Address**
+```
+import Polkasafe from 'polkasafe';
+const client = new Polkasafe();
+client.connect(network, address, injector);
+//You need to provide your substrate address to connect the polkasafe SDK
+const { data, error } = await client.connectAddress(substrateAddress);
+
+if (data){
+    // Use your data
+    console.log(data.multisigAddresses)
+}
+else if(error){
+    console.log(error)
+}
+```
 
 - **Add to Address Book**
 
