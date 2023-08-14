@@ -34,6 +34,7 @@ import { networks } from './utils/constants/network_constants';
 import { SubmittableExtrinsic } from '@polkadot/api/submittable/types';
 import { customTransaction } from './custom-transaction';
 import { BN } from '@polkadot/util';
+import getOnChainMultisigMetaData from './utils/getMultisigDataByMultisigAddress';
 
 type Multisig = {
     address: string;
@@ -705,12 +706,25 @@ export class Polkasafe extends Base {
     ): Promise<any> {
         if (!multisigAddress || !tx)
             throw new Error(responseMessages.invalid_params);
-        const { data: multisig } = await this.getMultisigDataByAddress(
-            multisigAddress
+        const { data: multisigMetaData, error: multisigMetaDataErr }  = await getOnChainMultisigMetaData(
+            multisigAddress,
+            this.network
         );
-        if (!multisig) {
-            return { error: 'Invalid multisig, make sure multisig is on chain' };
+        if (!multisigMetaData) {
+            return { error: multisigMetaDataErr || responseMessages.onchain_multisig_fetch_error }
         }
+        if (multisigMetaDataErr) return { error: multisigMetaDataErr || responseMessages.onchain_multisig_fetch_error };
+
+        const multisig: IMultisigAddress = {
+            address: this.address,
+            created_at: new Date(),
+            updated_at: new Date(),
+            name: multisigMetaData.name,
+            signatories: multisigMetaData.signatories || [],
+            network: String(this.network).toLowerCase(),
+            threshold: Number(multisigMetaData.threshold) || 0
+        };
+
         const {
             status,
             error,
