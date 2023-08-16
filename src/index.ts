@@ -34,7 +34,7 @@ import { networks } from './utils/constants/network_constants';
 import { SubmittableExtrinsic } from '@polkadot/api/submittable/types';
 import { customTransaction } from './custom-transaction';
 import { BN } from '@polkadot/util';
-import getOnChainMultisigMetaData from './utils/getMultisigDataByMultisigAddress';
+import { getMultisigDataByAddress } from './get-multisig-data-by-address/getMultisigDataByAddress';
 
 type Multisig = {
     address: string;
@@ -706,24 +706,27 @@ export class Polkasafe extends Base {
     ): Promise<any> {
         if (!multisigAddress || !tx)
             throw new Error(responseMessages.invalid_params);
-        const { data: multisigMetaData, error: multisigMetaDataErr }  = await getOnChainMultisigMetaData(
-            multisigAddress,
-            this.network
+
+        function getMultisigDataByMultiAddress(
+            multisigAddress: string
+        ): Promise<{ data: IMultisigAddress; error: string | undefined }> {
+            const { endpoint, headers, options } = getMultisigDataByAddress({
+                multisigAddress,
+                network: this.network,
+            });
+            return this.request(
+                endpoint,
+                { ...headers, ...this.getHeaders() },
+                options
+            );
+        }
+
+        const { data: multisig, error: multisigMetaDataErr } = await getMultisigDataByMultiAddress(
+            multisigAddress
         );
-        if (!multisigMetaData) {
+        if (!multisig) {
             return { error: multisigMetaDataErr || responseMessages.onchain_multisig_fetch_error }
         }
-        if (multisigMetaDataErr) return { error: multisigMetaDataErr || responseMessages.onchain_multisig_fetch_error };
-
-        const multisig: IMultisigAddress = {
-            address: this.address,
-            created_at: new Date(),
-            updated_at: new Date(),
-            name: multisigMetaData.name,
-            signatories: multisigMetaData.signatories || [],
-            network: String(this.network).toLowerCase(),
-            threshold: Number(multisigMetaData.threshold) || 0
-        };
 
         const {
             status,
