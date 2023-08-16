@@ -45,7 +45,7 @@ type Multisig = {
 
 export class Polkasafe extends Base {
     protected getHeaders() {
-        if (!this.address || !this.network || !this.signature) {
+        if (!this.address || !this.network) {
             throw new Error(
                 'Address, network, signature is required please use connect first'
             );
@@ -87,6 +87,24 @@ export class Polkasafe extends Base {
         this.injector = injector;
 
         return { message: 'success', signature: signature };
+    }
+
+    setPolkasafeClient(
+        network: string,
+        address: string,
+        injector: any
+    ): { message: string } {
+        if (!network || !address || !injector) {
+            throw new Error(responseMessages.missing_params);
+        }
+        if (!Object.values(networks).includes(network)) {
+            throw new Error(responseMessages.invalid_params);
+        }
+        this.network = network;
+        this.address = address;
+        this.injector = injector;
+
+        return { message: 'success' };
     }
 
     getConnectAddressToken(
@@ -696,6 +714,20 @@ export class Polkasafe extends Base {
         }
         return { status, error };
     }
+    
+    getMultisigDataByMultiAddress(
+        multisigAddress: string
+    ): Promise<{ data: IMultisigAddress; error: string | undefined }>{
+        const { endpoint, headers, options } = getMultisigDataByAddress({
+            multisigAddress,
+            network: this.network,
+        });
+        return this.request(
+            endpoint,
+            { ...headers, ...this.getHeaders() },
+            options
+        );
+    }
 
     async customTransactionAsMulti(
         multisigAddress: string,
@@ -707,21 +739,8 @@ export class Polkasafe extends Base {
         if (!multisigAddress || !tx)
             throw new Error(responseMessages.invalid_params);
 
-        function getMultisigDataByMultiAddress(
-            multisigAddress: string
-        ): Promise<{ data: IMultisigAddress; error: string | undefined }> {
-            const { endpoint, headers, options } = getMultisigDataByAddress({
-                multisigAddress,
-                network: this.network,
-            });
-            return this.request(
-                endpoint,
-                { ...headers, ...this.getHeaders() },
-                options
-            );
-        }
 
-        const { data: multisig, error: multisigMetaDataErr } = await getMultisigDataByMultiAddress(
+        const { data: multisig, error: multisigMetaDataErr } = await this.getMultisigDataByMultiAddress(
             multisigAddress
         );
         if (!multisig) {
@@ -767,7 +786,7 @@ export class Polkasafe extends Base {
                     to: transactionData.to,
                 };
                 const { endpoint, headers, options } = {
-                    endpoint: '/addTransaction',
+                    endpoint: '/addTransactionForCustomTransaction',
                     headers: this.getHeaders(),
                     options: {
                         body: JSON.stringify(newTransactionData),

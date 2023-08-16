@@ -1,9 +1,9 @@
 export abstract class Base {
     private baseUrl: string;
     signature: string;
-    network: string;
-    address: string;
-    injector: any;
+    protected network: string;
+    protected address: string;
+    protected injector: any;
     
     constructor() {
         this.baseUrl = "https://us-central1-polkasafe-a8042.cloudfunctions.net";
