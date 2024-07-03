@@ -1,32 +1,39 @@
 {
-    "name": "polkasafe",
-    "version": "1.1.15",
-    "description": "",
-    "main": "build/index.js",
-    "module": "build/index.m.js",
-    "unpkg": "build/index.umd.js",
-    "types": "build/index.d.ts",
-    "scripts": {
-        "build": "rm -rf build && microbundle --tsconfig tsconfig.json --no-sourcemap"
-    },
-    "dependencies": {
-        "@polkadot/api": "^10.6.1",
-        "@polkadot/api-augment": "^10.7.3",
-        "@polkadot/extension-dapp": "^0.25.0-beta.1",
-        "axios": "^1.4.0",
-        "bn.js": "^5.2.1",
-        "dayjs": "^1.11.7"
-    },
-    "author": "",
-    "license": "ISC",
-    "files": [
-        "build"
-    ],
-    "devDependencies": {
-        "microbundle": "^0.15.1"
-    },
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/polkasafe/polkasafe-sdk.git"
-    }
+  "name": "polkasafe",
+  "version": "1.1.13",
+  "description": "",
+  "main": "build/index.js",
+  "module": "build/index.m.js",
+  "unpkg": "build/index.umd.js",
+  "types": "build/index.d.ts",
+  "scripts": {
+    "build": "rm -rf build && microbundle --tsconfig tsconfig.json --no-sourcemap"
+  },
+  "dependencies": {
+    "@polkadot/api": "^11.2.1",
+    "@polkadot/api-augment": "^11.2.1",
+    "@polkadot/apps-config": "^0.139.1",
+    "@polkadot/extension-dapp": "^0.47.5",
+    "@polkadot/extension-inject": "^0.47.5",
+    "@polkadot/react-identicon": "^3.6.6",
+    "@polkadot/react-qr": "^3.0.2",
+    "@polkadot/ui-settings": "^3.6.6",
+    "@polkadot/util": "^12.6.2",
+    "@polkadot/util-crypto": "^12.6.2",
+    "axios": "^1.4.0",
+    "bn.js": "^5.2.1",
+    "dayjs": "^1.11.7"
+  },
+  "author": "",
+  "license": "ISC",
+  "files": [
+    "build"
+  ],
+  "devDependencies": {
+    "microbundle": "^0.15.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/polkasafe/polkasafe-sdk.git"
+  }
 }
