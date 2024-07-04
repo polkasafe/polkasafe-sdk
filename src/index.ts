@@ -62,32 +62,37 @@ export class Polkasafe extends Base {
         network: string,
         address: string,
         injector: any
-    ): Promise<{ message: string; signature: string }> {
+    ): Promise<{ message: string; signature?: string, tfa_token?: string }> {
         if (!network || !address || !injector) {
             throw new Error(responseMessages.missing_params);
         }
         if (!Object.values(networks).includes(network)) {
             throw new Error(responseMessages.invalid_params);
         }
-        const { data: token } = await this.getConnectAddressToken(address);
-
-        const signRaw = injector && injector.signer && injector.signer.signRaw;
-        if (!signRaw) {
-            throw new Error('Signer not available');
-        }
-
-        const { signature } = await signRaw({
-            address: address,
-            data: stringToHex(token),
-            type: 'bytes',
-        });
-
-        this.signature = signature;
         this.network = network;
         this.address = address;
         this.injector = injector;
-
-        return { message: 'success', signature: signature };
+        const { data: token } = await this.getConnectAddressToken(address);
+        
+        if(typeof token != 'string' && token.tfa_token){
+            return { message: 'success', tfa_token: token.tfa_token };
+        }
+        if(typeof token == 'string'){
+            const signRaw = injector && injector.signer && injector.signer.signRaw;
+            if (!signRaw) {
+                throw new Error('Signer not available');
+            }
+            
+            const { signature } = await signRaw({
+                address: address,
+                data: stringToHex(token),
+                type: 'bytes',
+            });
+            
+            this.signature = signature;
+    
+            return { message: 'success', signature: signature };
+        }
     }
 
     setPolkasafeClient(
@@ -110,7 +115,7 @@ export class Polkasafe extends Base {
 
     getConnectAddressToken(
         address: string
-    ): Promise<{ data: string; error: string | undefined }> {
+    ): Promise<{ data: string | {tfa_token: string}; error: string | undefined }> {
         const { endpoint, headers, options } = getConnectAddressToken(address);
         return this.request(
             endpoint,
@@ -304,19 +309,44 @@ export class Polkasafe extends Base {
         );
     }
 
-    validate2FA(
+    async validate2FA(
         authCode: string,
         tfa_token: string
-    ): Promise<{ data: Array<IAddressBook>; error: string | undefined }> {
+    ): Promise<{ message: string; error?: string | undefined, signature?: string }> {
         const { endpoint, headers, options } = handleValidate2FA({
             authCode,
             tfa_token,
         });
-        return this.request(
+        const { data: token } = await  this.request(
             endpoint,
             { ...headers, ...this.getHeaders() },
             options
-        );
+        ) as {data: string};
+        if(!token){
+            return { message: 'failed', error: 'Invalid 2FA code' };
+        }
+        const network = this.network;
+        const address = this.address;
+        const injector = this.injector;
+        if(typeof token == 'string'){
+            const signRaw = injector && injector.signer && injector.signer.signRaw;
+            if (!signRaw) {
+                throw new Error('Signer not available');
+            }
+    
+            const { signature } = await signRaw({
+                address: address,
+                data: stringToHex(token),
+                type: 'bytes',
+            });
+    
+            this.signature = signature;
+            this.network = network;
+            this.address = address;
+            this.injector = injector;
+            return { message: 'success', signature: signature };
+        }
+        return { message: 'Error', error: 'something went wrong' };
     }
 
     async createProxy(
