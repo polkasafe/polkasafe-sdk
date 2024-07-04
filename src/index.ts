@@ -35,6 +35,7 @@ import { SubmittableExtrinsic } from '@polkadot/api/submittable/types';
 import { customTransaction } from './custom-transaction';
 import { BN } from '@polkadot/util';
 import { getMultisigDataByAddress } from './get-multisig-data-by-address/getMultisigDataByAddress';
+import { handleValidate2FA } from './validate-2-fa';
 
 type Multisig = {
     address: string;
@@ -296,6 +297,21 @@ export class Polkasafe extends Base {
         multisigAddress: string
     ): Promise<{ data: string; error: string | undefined }> {
         const { endpoint, headers, options } = deleteMultisig(multisigAddress);
+        return this.request(
+            endpoint,
+            { ...headers, ...this.getHeaders() },
+            options
+        );
+    }
+
+    validate2FA(
+        authCode: string,
+        tfa_token: string
+    ): Promise<{ data: Array<IAddressBook>; error: string | undefined }> {
+        const { endpoint, headers, options } = handleValidate2FA({
+            authCode,
+            tfa_token,
+        });
         return this.request(
             endpoint,
             { ...headers, ...this.getHeaders() },
