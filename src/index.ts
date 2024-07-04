@@ -786,7 +786,7 @@ export class Polkasafe extends Base {
                     to: transactionData.to,
                 };
                 const { endpoint, headers, options } = {
-                    endpoint: '/addTransactionForCustomTransaction',
+                    endpoint: '/addTransaction',
                     headers: this.getHeaders(),
                     options: {
                         body: JSON.stringify(newTransactionData),
