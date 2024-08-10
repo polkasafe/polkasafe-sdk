@@ -108,11 +108,11 @@ export const customTransactionByMulti = async ({
     }
     let blockHash = '';
     return new Promise<any>((resolve, reject) => {
-        api.tx.multisig[isProxy ? 'asMulti' : 'approveAsMulti'](
+        api.tx.multisig['asMulti'](
             multisig.threshold,
             otherSignatories,
             TIME_POINT,
-            isProxy ? tx : call.method.hash,
+            tx,
             weight
         )
             .signAndSend(
