@@ -1,7 +1,7 @@
 import {SubmittableExtrinsic} from '@polkadot/api/types';
 import {BN as BNType} from '@polkadot/util';
-import getSubstrateAddress from '../utils/getSubstrateAddress';
-import getEncodedAddress from 'src/utils/getEncodedAddress';
+import getEncodedAddress from '../utils/getEncodedAddress';
+import { ApiPromise } from '@polkadot/api';
 
 type Props = {
     api: any;
@@ -26,6 +26,37 @@ export const customTransactionByMulti = async ({
     isProxy,
     tip,
 }: Props): Promise<any> => {
+    // Validate inputs
+    if (!api || !injector || !network || !tx || !multisig || !senderAddress) {
+        throw new Error('Missing required parameters');
+    }
+
+    if (!multisig.signatories || !Array.isArray(multisig.signatories)) {
+        throw new Error('Invalid multisig: signatories must be an array');
+    }
+
+    if (!multisig.threshold || multisig.threshold < 1) {
+        throw new Error('Invalid multisig: threshold must be at least 1');
+    }
+
+    // Validate that the transaction is properly formatted
+    try {
+        // Try to get the human-readable version to validate the transaction
+        const txHuman = tx.toHuman() as any;
+        console.log('Transaction details:', txHuman);
+        
+        // Check if this is a balances.transferKeepAlive transaction
+        if (txHuman?.method?.section === 'balances' && txHuman?.method?.method === 'transferKeepAlive') {
+            const dest = txHuman?.args?.dest;
+            if (!dest || !dest.Id) {
+                throw new Error('Invalid destination address in transferKeepAlive transaction');
+            }
+            console.log('Destination address:', dest.Id);
+        }
+    } catch (error) {
+        throw new Error(`Invalid transaction format: ${error.message}`);
+    }
+
     try {
         api.setSigner(injector.signer);
     } catch (error) {
@@ -66,9 +97,9 @@ export const customTransactionByMulti = async ({
     console.log(multisig.threshold, otherSignatories.map((signatory: string) => getEncodedAddress(signatory, network)), timePoint, tx.toHuman(), weight);
 
     return new Promise<any>((resolve, reject) => {
-        api.tx.multisig.asMulti(
-            multisig.threshold,
-            otherSignatories,
+        (api as ApiPromise).tx.multisig.asMulti(
+            Number(multisig.threshold),
+            otherSignatories.map((signatory: string) => getEncodedAddress(signatory, network)),
             timePoint,
             tx,
             weight
