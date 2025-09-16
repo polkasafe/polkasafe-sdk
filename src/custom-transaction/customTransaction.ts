@@ -63,7 +63,7 @@ export const customTransactionByMulti = async ({
 
     console.log('-------------------This is from the custom transaction-------------------')
     
-    console.log(multisig.threshold, otherSignatories, timePoint, tx.toHuman(), weight);
+    console.log(multisig.threshold, otherSignatories.map((signatory: string) => getEncodedAddress(signatory, network)), timePoint, tx.toHuman(), weight);
 
     return new Promise<any>((resolve, reject) => {
         api.tx.multisig.asMulti(
