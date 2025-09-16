@@ -117,7 +117,7 @@ export const customTransactionByMulti = async ({
         )
             .signAndSend(
                 senderAddress,
-                {tip},
+                tip ? {tip} : {},
                 async ({
                     status,
                     txHash,
