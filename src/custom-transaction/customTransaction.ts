@@ -60,6 +60,10 @@ export const customTransactionByMulti = async ({
         tx = api.tx.proxy.proxy(multisig.proxy, null, tx);
     }
 
+    console.log('-------------------This is from the custom transaction-------------------')
+    
+    console.log(multisig.threshold, otherSignatories, timePoint, tx, weight);
+
     return new Promise<any>((resolve, reject) => {
         api.tx.multisig.asMulti(
             multisig.threshold,
