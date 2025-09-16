@@ -54,10 +54,7 @@ export const customTransactionByMulti = async ({
         TIME_POINT = info?.unwrap()?.when;
     }
     const callData = api.createType('Call', call.method.toHex());
-
-    const {data, error} = decodeCallData(call.method.toHex(), api);
-    if (error || !data) return {error: error};
-    const decodedCallData = data.extrinsicCall?.toJSON();
+    const decodedCallData = tx.toJSON() || tx.toHuman();
 
     const amount = //@ts-ignore
         decodedCallData?.args?.value || //@ts-ignore
