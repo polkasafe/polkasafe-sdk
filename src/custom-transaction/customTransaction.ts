@@ -1,11 +1,6 @@
 import {SubmittableExtrinsic} from '@polkadot/api/types';
-import {calcWeight} from '../utils/calcWeight';
-import {BN} from 'bn.js';
-import getSubstrateAddress from 'src/utils/getSubstrateAddress';
-import decodeCallData from 'src/utils/decodeCallData';
-import parseDecodedValue from 'src/utils/parseDecodedValue';
 import {BN as BNType} from '@polkadot/util';
-import formatBnBalance from 'src/utils/formatBnBalance';
+import getSubstrateAddress from '../utils/getSubstrateAddress';
 
 type Props = {
     api: any;
@@ -35,126 +30,102 @@ export const customTransactionByMulti = async ({
     } catch (error) {
         throw new Error('Invalid injector, please use a valid injector');
     }
-    const call = tx;
 
+    // Get other signatories (excluding the sender)
     const otherSignatories = multisig.signatories
         .sort()
-        .filter(
-            (signatory: string) =>
-                getSubstrateAddress(signatory) !==
-                getSubstrateAddress(senderAddress)
-        );
+        .filter((signatory: string) => {
+            const substrateSignatory = getSubstrateAddress(signatory);
+            const substrateSender = getSubstrateAddress(senderAddress);
+            return substrateSignatory && substrateSender && substrateSignatory !== substrateSender;
+        });
 
-    const info = await api.query.multisig.multisigs(
-        isProxy ? multisig.proxy : multisig.address,
-        isProxy ? tx.method.hash.toHex() : call.method.hash.toHex()
-    );
-    const paymentInfo = (await tx.paymentInfo(senderAddress));
-    let weight = paymentInfo.weight;
-    let TIME_POINT = null;
-    if (info.isSome) {
-        TIME_POINT = info?.unwrap()?.when;
-    }
+    // Check if this transaction already exists in multisig
+    const multisigAddress = isProxy ? multisig.proxy : multisig.address;
+    const callHash = tx.method.hash.toHex();
+    const info = await api.query.multisig.multisigs(multisigAddress, callHash);
     
+    let timePoint = null;
+    if (info.isSome) {
+        timePoint = info.unwrap().when;
+    }
+
+    // Get payment info for weight calculation
+    const paymentInfo = await tx.paymentInfo(senderAddress);
+    let weight = paymentInfo.weight;
+
+    // Wrap transaction in proxy if needed
     if (isProxy && multisig.proxy) {
         weight = 0 as any;
         tx = api.tx.proxy.proxy(multisig.proxy, null, tx);
     }
-    let blockHash = '';
+
     return new Promise<any>((resolve, reject) => {
-        api.tx.multisig['asMulti'](
+        api.tx.multisig.asMulti(
             multisig.threshold,
             otherSignatories,
-            TIME_POINT,
+            timePoint,
             tx,
             weight
         )
-            .signAndSend(
-                senderAddress,
-                tip ? {tip} : {},
-                async ({
-                    status,
-                    txHash,
-                    events,
-                }: {
-                    status: any;
-                    txHash: any;
-                    events: any;
-                }) => {
+        .signAndSend(
+            senderAddress,
+            tip ? { tip } : {},
+            async ({ status, txHash, events }) => {
+                try {
                     if (status.isInvalid) {
-                        console.log('Transaction invalid');
                         statusGrabber('Transaction invalid');
                     } else if (status.isReady) {
-                        console.log('Transaction is ready');
                         statusGrabber('Transaction is ready');
                     } else if (status.isBroadcast) {
-                        console.log('Transaction has been broadcasted');
                         statusGrabber('Transaction has been broadcasted');
                     } else if (status.isInBlock) {
-                        blockHash = status.asInBlock.toHex();
-                        console.log('Transaction is in block');
                         statusGrabber('Transaction is in block');
                     } else if (status.isFinalized) {
-                        console.log(
-                            `Transaction has been included in blockHash ${status.asFinalized.toHex()}`
-                        );
-                        console.log(
-                            `transfer tx: https://${network}.subscan.io/extrinsic/${txHash}`
-                        );
+                        statusGrabber('Transaction finalized');
+                        
+                        const blockHash = status.asFinalized.toHex();
                         const block = await api.rpc.chain.getBlock(blockHash);
-                        const blockNumber =
-                            block.block.header.number.toNumber();
-                        for (const {event} of events) {
+                        const blockNumber = block.block.header.number.toNumber();
+
+                        // Process events
+                        for (const { event } of events) {
                             if (event.method === 'ExtrinsicSuccess') {
                                 resolve({
                                     message: 'success',
                                     data: {
-                                        amount: new BN('0'),
+                                        amount: '0',
                                         block_number: blockNumber,
-                                        callData: isProxy
-                                            ? tx.method.toHex()
-                                            : call.method.toHex(),
-                                        callHash: isProxy
-                                            ? tx.method.hash.toHex()
-                                            : call.method.hash.toHex(),
-                                        from: isProxy
-                                            ? multisig.proxy
-                                            : multisig.address,
+                                        callData: tx.method.toHex(),
+                                        callHash: callHash,
+                                        from: multisigAddress,
                                         network,
                                         note: 'A custom transaction',
-                                        to: ''
+                                        to: '',
                                     },
                                 });
+                                return;
                             } else if (event.method === 'ExtrinsicFailed') {
-                                console.log('Transaction failed');
-
-                                const errorModule = (event.data as any)
-                                    ?.dispatchError?.asModule;
+                                const errorModule = (event.data as any)?.dispatchError?.asModule;
                                 if (!errorModule) {
-                                    reject({error: 'Transaction Failed'});
+                                    reject({ error: 'Transaction Failed' });
                                     return;
                                 }
-                                const {method, section, docs} =
-                                    api.registry.findMetaError(errorModule);
-                                console.log(
-                                    `Error: ${section}.${method}\n${docs.join(
-                                        ' '
-                                    )}`
-                                );
-                                reject({
-                                    error: `${section}.${method} -- ${docs.join(
-                                        ' '
-                                    )}`,
-                                });
+                                
+                                const { method, section, docs } = api.registry.findMetaError(errorModule);
+                                const errorMessage = `${section}.${method}${docs.length ? ` -- ${docs.join(' ')}` : ''}`;
+                                reject({ error: errorMessage });
+                                return;
                             }
                         }
                     }
+                } catch (error) {
+                    reject({ error: error.message || 'Unknown error occurred' });
                 }
-            )
-            .catch((error: any) => {
-                console.log(':( transaction failed');
-                console.error('ERROR:', error);
-                reject({error});
-            });
+            }
+        )
+        .catch((error: any) => {
+            reject({ error: error.message || 'Transaction failed' });
+        });
     });
 };
