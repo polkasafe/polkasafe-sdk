@@ -53,50 +53,55 @@ export const customTransactionByMulti = async ({
     if (info.isSome) {
         TIME_POINT = info?.unwrap()?.when;
     }
-    const callData = api.createType('Call', call.method.toHex());
-    const decodedCallData = tx.toJSON() || tx.toHuman();
-
-    const amount = //@ts-ignore
-        decodedCallData?.args?.value || //@ts-ignore
-        decodedCallData?.args?.call?.args?.value || //@ts-ignore
-        decodedCallData?.args?.calls?.map((item: any) => item?.args?.value) || //@ts-ignore
-        '0';
-
-    const sendingAmount = parseDecodedValue({
-        network,
-        value: amount,
-        withUnit: false,
-    });
-    if (amount !== '0' && sendingAmount) {
-        const res = await api.query?.system?.account(isProxy ? multisig.proxy: multisig.address);
-        const currentBNBalance = res?.data?.free?.toString() || '0';
-        const currentBalance = formatBnBalance(
-            currentBNBalance,
-            {
-                numberAfterComma: 3,
-                withThousandDelimitor: false,
-                withUnit: false,
-            },
-            network
-        );
+    const callData = api.createType('Call', tx.method.toHex());
+    try {
         
-        if (
-            parseFloat(currentBalance.split(',').join('')) <
-            parseFloat(sendingAmount.split(',').join(''))
-        ) {
-            return {error: 'Balance is low to make the transaction'};
+        const decodedCallData = tx.toJSON() || tx.toHuman();
+    
+        const amount = //@ts-ignore
+            decodedCallData?.args?.value || //@ts-ignore
+            decodedCallData?.args?.call?.args?.value || //@ts-ignore
+            decodedCallData?.args?.calls?.map((item: any) => item?.args?.value) || //@ts-ignore
+            '0';
+    
+        const sendingAmount = parseDecodedValue({
+            network,
+            value: amount,
+            withUnit: false,
+        });
+        if (amount !== '0' && sendingAmount) {
+            const res = await api.query?.system?.account(isProxy ? multisig.proxy: multisig.address);
+            const currentBNBalance = res?.data?.free?.toString() || '0';
+            const currentBalance = formatBnBalance(
+                currentBNBalance,
+                {
+                    numberAfterComma: 3,
+                    withThousandDelimitor: false,
+                    withUnit: false,
+                },
+                network
+            );
+            
+            if (
+                parseFloat(currentBalance.split(',').join('')) <
+                parseFloat(sendingAmount.split(',').join(''))
+            ) {
+                return {error: 'Balance is low to make the transaction'};
+            }
         }
+    
+        const recipientAddress = //@ts-ignore
+            decodedCallData?.args?.dest?.id || //@ts-ignore
+            decodedCallData?.args?.call?.args?.dest?.id || //@ts-ignore
+            decodedCallData?.args?.calls?.map(
+                (item: any) => item?.args?.dest?.id
+            ) || //@ts-ignore
+            decodedCallData?.args?.call?.args?.calls?.map(
+                (item: any) => item?.args?.dest?.id
+            );
+    } catch (error) {
+        // do nothing
     }
-
-    const recipientAddress = //@ts-ignore
-        decodedCallData?.args?.dest?.id || //@ts-ignore
-        decodedCallData?.args?.call?.args?.dest?.id || //@ts-ignore
-        decodedCallData?.args?.calls?.map(
-            (item: any) => item?.args?.dest?.id
-        ) || //@ts-ignore
-        decodedCallData?.args?.call?.args?.calls?.map(
-            (item: any) => item?.args?.dest?.id
-        );
 
     let {weight} = await calcWeight(callData, api);
     if (isProxy && multisig.proxy) {
@@ -152,7 +157,7 @@ export const customTransactionByMulti = async ({
                                 resolve({
                                     message: 'success',
                                     data: {
-                                        amount: sendingAmount || new BN('0'),
+                                        amount: new BN('0'),
                                         block_number: blockNumber,
                                         callData: isProxy
                                             ? tx.method.toHex()
@@ -165,9 +170,7 @@ export const customTransactionByMulti = async ({
                                             : multisig.address,
                                         network,
                                         note: 'A custom transaction',
-                                        to: recipientAddress
-                                            ? recipientAddress
-                                            : '',
+                                        to: ''
                                     },
                                 });
                             } else if (event.method === 'ExtrinsicFailed') {
