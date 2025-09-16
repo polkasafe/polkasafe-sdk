@@ -1,6 +1,7 @@
 import {SubmittableExtrinsic} from '@polkadot/api/types';
 import {BN as BNType} from '@polkadot/util';
 import getSubstrateAddress from '../utils/getSubstrateAddress';
+import getEncodedAddress from 'src/utils/getEncodedAddress';
 
 type Props = {
     api: any;
@@ -35,8 +36,8 @@ export const customTransactionByMulti = async ({
     const otherSignatories = multisig.signatories
         .sort()
         .filter((signatory: string) => {
-            const substrateSignatory = getSubstrateAddress(signatory);
-            const substrateSender = getSubstrateAddress(senderAddress);
+            const substrateSignatory = getEncodedAddress(signatory, network);
+            const substrateSender = getEncodedAddress(senderAddress, network);
             return substrateSignatory && substrateSender && substrateSignatory !== substrateSender;
         });
 
@@ -62,7 +63,7 @@ export const customTransactionByMulti = async ({
 
     console.log('-------------------This is from the custom transaction-------------------')
     
-    console.log(multisig.threshold, otherSignatories, timePoint, tx, weight);
+    console.log(multisig.threshold, otherSignatories, timePoint, tx.toHuman(), weight);
 
     return new Promise<any>((resolve, reject) => {
         api.tx.multisig.asMulti(
