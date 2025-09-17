@@ -48,12 +48,31 @@ export const customTransactionByMulti = async ({
         // Check if this is a balances.transferKeepAlive transaction
         if (txHuman?.method?.section === 'balances' && txHuman?.method?.method === 'transferKeepAlive') {
             const dest = txHuman?.args?.dest;
+            
             if (!dest || !dest.Id) {
-            console.log('Invalid destination address in transferKeepAlive transaction');            }
+                console.log('Invalid destination address in transferKeepAlive transaction');
+                throw new Error('Invalid destination address in transferKeepAlive transaction');
+            }
             console.log('Destination address:', dest.Id);
         }
+        
+        // Validate that the transaction can be properly decoded
+        const txMethod = tx.method;
+        if (!txMethod || !txMethod.section || !txMethod.method) {
+            throw new Error('Invalid transaction method structure');
+        }
+        
+        // Test if the transaction can be recreated with current API registry
+        try {
+            const testTx = (api as any).tx[txMethod.section][txMethod.method](...txMethod.args);
+            console.log('Transaction validation successful');
+        } catch (validationError) {
+            console.log('Transaction validation failed:', validationError);
+            throw new Error(`Transaction cannot be properly encoded with current API registry: ${validationError.message}`);
+        }
     } catch (error) {
-        console.log('Error in customTransactionByMulti:', error);
+        console.log('Error validating transaction:', error);
+        throw new Error(`Transaction validation failed: ${error.message}`);
     }
 
     try {
@@ -85,25 +104,63 @@ export const customTransactionByMulti = async ({
     const paymentInfo = await tx.paymentInfo(senderAddress);
     let weight = paymentInfo.weight;
 
-    // Wrap transaction in proxy if needed
-    if (isProxy && multisig.proxy) {
-        weight = 0 as any;
-        tx = api.tx.proxy.proxy(multisig.proxy, null, tx);
+    // Ensure the transaction is properly encoded with the current API registry
+    let finalTx = tx;
+    try {
+        // Re-encode the transaction to ensure it has the proper registry context
+        const txMethod = tx.method;
+        const txSection = txMethod.section;
+        const txMethodName = txMethod.method;
+        const txArgs = txMethod.args;
+        
+        // Recreate the transaction with the current API instance to ensure proper registry context
+        finalTx = (api as any).tx[txSection][txMethodName](...txArgs);
+        
+        // Wrap transaction in proxy if needed
+        if (isProxy && multisig.proxy) {
+            weight = 0 as any;
+            finalTx = api.tx.proxy.proxy(multisig.proxy, null, finalTx);
+        }
+    } catch (error) {
+        console.log('Error re-encoding transaction:', error);
+        // Fallback to original transaction if re-encoding fails
+        if (isProxy && multisig.proxy) {
+            weight = 0 as any;
+            finalTx = api.tx.proxy.proxy(multisig.proxy, null, tx);
+        }
     }
 
     console.log('-------------------This is from the custom transaction-------------------')
     
-    console.log(multisig.threshold, otherSignatories.map((signatory: string) => getEncodedAddress(signatory, network)), timePoint, tx.toHuman(), weight);
+    console.log(multisig.threshold, otherSignatories.map((signatory: string) => getEncodedAddress(signatory, network)), timePoint, finalTx.toHuman(), weight);
 
     return new Promise<any>((resolve, reject) => {
-        (api as ApiPromise).tx.multisig.asMulti(
-            Number(multisig.threshold),
-            otherSignatories.map((signatory: string) => getEncodedAddress(signatory, network)),
-            timePoint,
-            tx,
-            weight
-        )
-        .signAndSend(
+        try {
+            // Validate that all signatories can be properly encoded
+            const encodedSignatories = otherSignatories.map((signatory: string) => {
+                const encoded = getEncodedAddress(signatory, network);
+                if (!encoded) {
+                    throw new Error(`Failed to encode signatory address: ${signatory}`);
+                }
+                return encoded;
+            });
+
+            // Create the multisig call
+            const multisigCall = (api as ApiPromise).tx.multisig.asMulti(
+                Number(multisig.threshold),
+                encodedSignatories,
+                timePoint,
+                finalTx,
+                weight
+            );
+
+            // Validate the multisig call can be created
+            if (!multisigCall) {
+                throw new Error('Failed to create multisig call');
+            }
+
+            // Execute the multisig call
+            multisigCall.signAndSend(
             senderAddress,
             tip ? { tip } : {},
             async ({ status, txHash, events }) => {
@@ -131,7 +188,7 @@ export const customTransactionByMulti = async ({
                                     data: {
                                         amount: '0',
                                         block_number: blockNumber,
-                                        callData: tx.method.toHex(),
+                                        callData: finalTx.method.toHex(),
                                         callHash: callHash,
                                         from: multisigAddress,
                                         network,
@@ -162,5 +219,8 @@ export const customTransactionByMulti = async ({
         .catch((error: any) => {
             reject({ error: error.message || 'Transaction failed' });
         });
+        } catch (error) {
+            reject({ error: error.message || 'Failed to create multisig transaction' });
+        }
     });
 };
