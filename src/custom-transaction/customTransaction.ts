@@ -49,18 +49,17 @@ export const customTransactionByMulti = async ({
         if (txHuman?.method?.section === 'balances' && txHuman?.method?.method === 'transferKeepAlive') {
             const dest = txHuman?.args?.dest;
             if (!dest || !dest.Id) {
-                throw new Error('Invalid destination address in transferKeepAlive transaction');
-            }
+            console.log('Invalid destination address in transferKeepAlive transaction');            }
             console.log('Destination address:', dest.Id);
         }
     } catch (error) {
-        throw new Error(`Invalid transaction format: ${error.message}`);
+        console.log('Error in customTransactionByMulti:', error);
     }
 
     try {
         api.setSigner(injector.signer);
     } catch (error) {
-        throw new Error('Invalid injector, please use a valid injector');
+        console.log('Error in customTransactionByMulti:', error);
     }
 
     // Get other signatories (excluding the sender)
