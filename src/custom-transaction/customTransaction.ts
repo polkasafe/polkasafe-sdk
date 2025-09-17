@@ -47,7 +47,7 @@ export const customTransactionByMulti = async ({
         
         // Check if this is a balances.transferKeepAlive transaction
         if (txHuman?.method?.section === 'balances' && txHuman?.method?.method === 'transferKeepAlive') {
-            const dest = txHuman?.args?.dest;
+            const dest = txHuman?.method?.args?.dest;
             
             if (!dest || !dest.Id) {
                 console.log('Invalid destination address in transferKeepAlive transaction');
