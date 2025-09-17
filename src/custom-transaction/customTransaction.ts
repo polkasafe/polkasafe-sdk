@@ -62,14 +62,6 @@ export const customTransactionByMulti = async ({
             throw new Error('Invalid transaction method structure');
         }
         
-        // Test if the transaction can be recreated with current API registry
-        try {
-            const testTx = (api as any).tx[txMethod.section][txMethod.method](...txMethod.args);
-            console.log('Transaction validation successful');
-        } catch (validationError) {
-            console.log('Transaction validation failed:', validationError);
-            throw new Error(`Transaction cannot be properly encoded with current API registry: ${validationError.message}`);
-        }
     } catch (error) {
         console.log('Error validating transaction:', error);
         throw new Error(`Transaction validation failed: ${error.message}`);
