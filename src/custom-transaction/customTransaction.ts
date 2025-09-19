@@ -123,9 +123,8 @@ export const customTransactionByMulti = async ({
     }
 
     console.log('-------------------This is from the custom transaction-------------------')
-    
     console.log(multisig.threshold, otherSignatories.map((signatory: string) => getEncodedAddress(signatory, network)), timePoint, finalTx.toHuman(), weight);
-
+    console.log(finalTx.toHuman(), finalTx.toHex())
     return new Promise<any>((resolve, reject) => {
         try {
             // Validate that all signatories can be properly encoded
