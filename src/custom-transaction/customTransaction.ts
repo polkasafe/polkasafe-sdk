@@ -140,8 +140,8 @@ export const customTransactionByMulti = async ({
             const multisigCall = (api as ApiPromise).tx.multisig.asMulti(
                 Number(multisig.threshold),
                 encodedSignatories,
-                timePoint,
-                finalTx,
+                null,
+                finalTx.toHex(),
                 weight
             );
 
@@ -152,7 +152,7 @@ export const customTransactionByMulti = async ({
 
             // Execute the multisig call
             multisigCall.signAndSend(
-            senderAddress,
+            getEncodedAddress(senderAddress, network),
             tip ? { tip } : {},
             async ({ status, txHash, events }) => {
                 try {
