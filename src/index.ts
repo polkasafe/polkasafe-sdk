@@ -860,10 +860,13 @@ export class Polkasafe extends Base {
         const { data: multisig, error: multisigMetaDataErr } = await this.getMultisigDataByMultiAddress(
             multisigAddress
         );
+        console.log('multisig from sdk', multisig);
 
         if (!multisig) {
             return { error: multisigMetaDataErr || responseMessages.onchain_multisig_fetch_error }
         }
+
+        console.log('creating transaction')
 
         const transaction = proxyAddress ? api.tx.proxy.proxy(proxyAddress, null, tx) : tx;
 
@@ -875,10 +878,12 @@ export class Polkasafe extends Base {
         else {
             timePoint = null;
         }
+        console.log(timePoint)
 
         // get the weight
         const weight = (await tx.paymentInfo(this.address)).weight;
 
+        console.log('weight',weight)
 
         const finalTx = api.tx.multisig.asMulti(
             Number(multisig.threshold),
@@ -887,6 +892,9 @@ export class Polkasafe extends Base {
             transaction,
             weight
         );
+
+
+        console.log('final tx', finalTx)
 
         await finalTx.signAndSend(this.address, (result) => {
             const { status } = result;
@@ -916,6 +924,8 @@ export class Polkasafe extends Base {
         });
         return { status: 200, message: 'Transaction Successful', tx: finalTx };
     }
+
+    
     async getAllMultisigByAddress(address: string, network: string) {
         try {
             const response = await getAllMultisigByAddress(address, network);
