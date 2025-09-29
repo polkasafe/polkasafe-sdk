@@ -36,6 +36,8 @@ import { customTransaction } from './custom-transaction';
 import { BN } from '@polkadot/util';
 import { getMultisigDataByAddress } from './get-multisig-data-by-address/getMultisigDataByAddress';
 import { handleValidate2FA } from './validate-2-fa';
+import { ApiPromise } from '@polkadot/api';
+import getSubstrateAddress from './utils/getSubstrateAddress';
 
 type Multisig = {
     address: string;
@@ -854,6 +856,66 @@ export class Polkasafe extends Base {
         return { status: 400, error: error };
     }
 
+    async signCustomTx({api, multisigAddress, tx, proxyAddress, statusGrabber}: {api: ApiPromise, multisigAddress: string, tx: SubmittableExtrinsic<'promise'>, proxyAddress: boolean, statusGrabber: (message?: string) => void}): Promise<any> {
+        const { data: multisig, error: multisigMetaDataErr } = await this.getMultisigDataByMultiAddress(
+            multisigAddress
+        );
+
+        if (!multisig) {
+            return { error: multisigMetaDataErr || responseMessages.onchain_multisig_fetch_error }
+        }
+
+        const transaction = proxyAddress ? api.tx.proxy.proxy(proxyAddress, null, tx) : tx;
+
+        // get the time point
+        let timePoint = await api.query.multisig.multisigs(multisigAddress, tx.method.hash.toHex()) as any;
+        if (timePoint.isSome) {
+            timePoint = timePoint.unwrap().when;
+        }
+        else {
+            timePoint = null;
+        }
+
+        // get the weight
+        const weight = (await tx.paymentInfo(this.address)).weight;
+
+
+        const finalTx = api.tx.multisig.asMulti(
+            Number(multisig.threshold),
+            multisig.signatories.filter((signatory: string) =>  getSubstrateAddress(signatory) !== getSubstrateAddress(this.address)),
+            timePoint,
+            transaction,
+            weight
+        );
+
+        await finalTx.signAndSend(this.address, (result) => {
+            const { status } = result;
+            if (status.isInvalid) {
+                statusGrabber('Transaction invalid');
+                return;
+            } else if (status.isReady) {
+                statusGrabber('Transaction is ready');
+                return;
+            }
+            else if (status.isBroadcast) {
+                statusGrabber('Transaction has been broadcasted');
+                return;
+            }
+            else if (status.isInBlock) {
+                statusGrabber('Transaction is in block');
+                return;
+            }
+            else if (status.isFinalized) {
+                statusGrabber('Transaction finalized');
+                return;
+            }
+            else if (status.isDropped) {
+                statusGrabber('Transaction dropped');
+                return;
+            }
+        });
+        return { status: 200, message: 'Transaction Successful', tx: finalTx };
+    }
     async getAllMultisigByAddress(address: string, network: string) {
         try {
             const response = await getAllMultisigByAddress(address, network);
