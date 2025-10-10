@@ -890,72 +890,72 @@ export class Polkasafe extends Base {
             maxWeight
         );
 
-        await new Promise<any>((resolve, reject) => {
-            finalTx.signAndSend(this.address,
-                tip ? { tip } : {},
-                async ({ status, txHash, events }) => {
-                    try {
-                        if (status.isInvalid) {
-                            console.log('Transaction invalid');
-                            statusGrabber('Transaction invalid');
-                        } else if (status.isReady) {
-                            console.log('Transaction is ready');
-                            statusGrabber('Transaction is ready');
-                        } else if (status.isBroadcast) {
-                            console.log('Transaction has been broadcasted');
-                            statusGrabber('Transaction has been broadcasted');
-                        } else if (status.isInBlock) {
-                            console.log('Transaction is in block');
-                            statusGrabber('Transaction is in block');
-                        } else if (status.isFinalized) {
-                            console.log('Transaction finalized');
-                            statusGrabber('Transaction finalized');
+        // await new Promise<any>((resolve, reject) => {
+        //     finalTx.signAndSend(this.address,
+        //         tip ? { tip } : {},
+        //         async ({ status, txHash, events }) => {
+        //             try {
+        //                 if (status.isInvalid) {
+        //                     console.log('Transaction invalid');
+        //                     statusGrabber('Transaction invalid');
+        //                 } else if (status.isReady) {
+        //                     console.log('Transaction is ready');
+        //                     statusGrabber('Transaction is ready');
+        //                 } else if (status.isBroadcast) {
+        //                     console.log('Transaction has been broadcasted');
+        //                     statusGrabber('Transaction has been broadcasted');
+        //                 } else if (status.isInBlock) {
+        //                     console.log('Transaction is in block');
+        //                     statusGrabber('Transaction is in block');
+        //                 } else if (status.isFinalized) {
+        //                     console.log('Transaction finalized');
+        //                     statusGrabber('Transaction finalized');
                             
-                            const blockHash = status.asFinalized.toHex();
-                            const block = await api.rpc.chain.getBlock(blockHash);
-                            const blockNumber = block.block.header.number.toNumber();
-                            console.log('Block number', blockNumber, 'Block hash', blockHash, 'Transaction hash', txHash);
+        //                     const blockHash = status.asFinalized.toHex();
+        //                     const block = await api.rpc.chain.getBlock(blockHash);
+        //                     const blockNumber = block.block.header.number.toNumber();
+        //                     console.log('Block number', blockNumber, 'Block hash', blockHash, 'Transaction hash', txHash);
 
-                            // Process events
-                            for (const { event } of events) {
-                                if (event.method === 'ExtrinsicSuccess') {
-                                    resolve({
-                                        message: 'success',
-                                        data: {
-                                            block_number: blockNumber,
-                                            callData: finalTx.method.toHex(),
-                                            callHash: finalTx.method.hash.toHex(),
-                                            from: multisigAddress,
-                                            network: this.network,
-                                            note: 'A custom transaction',
-                                            to: '',
-                                        },
-                                    });
-                                    return;
-                                } else if (event.method === 'ExtrinsicFailed') {
-                                    const errorModule = (event.data as any)?.dispatchError?.asModule;
-                                    if (!errorModule) {
-                                        console.log('Transaction failed');
-                                        reject({ error: 'Transaction Failed' });
-                                        return;
-                                    }
+        //                     // Process events
+        //                     for (const { event } of events) {
+        //                         if (event.method === 'ExtrinsicSuccess') {
+        //                             resolve({
+        //                                 message: 'success',
+        //                                 data: {
+        //                                     block_number: blockNumber,
+        //                                     callData: finalTx.method.toHex(),
+        //                                     callHash: finalTx.method.hash.toHex(),
+        //                                     from: multisigAddress,
+        //                                     network: this.network,
+        //                                     note: 'A custom transaction',
+        //                                     to: '',
+        //                                 },
+        //                             });
+        //                             return;
+        //                         } else if (event.method === 'ExtrinsicFailed') {
+        //                             const errorModule = (event.data as any)?.dispatchError?.asModule;
+        //                             if (!errorModule) {
+        //                                 console.log('Transaction failed');
+        //                                 reject({ error: 'Transaction Failed' });
+        //                                 return;
+        //                             }
                                     
-                                    const { method, section, docs } = api.registry.findMetaError(errorModule);
-                                    const errorMessage = `${section}.${method}${docs.length ? ` -- ${docs.join(' ')}` : ''}`;
-                                    console.log('Transaction failed');
-                                    reject({ error: errorMessage });
-                                    return;
-                                }
-                            }
-                        }
-                    } catch (error) {
-                        console.log('Unknown error occurred');
-                        reject({ error: error.message || 'Unknown error occurred' });
-                    }
-                });
-            });
+        //                             const { method, section, docs } = api.registry.findMetaError(errorModule);
+        //                             const errorMessage = `${section}.${method}${docs.length ? ` -- ${docs.join(' ')}` : ''}`;
+        //                             console.log('Transaction failed');
+        //                             reject({ error: errorMessage });
+        //                             return;
+        //                         }
+        //                     }
+        //                 }
+        //             } catch (error) {
+        //                 console.log('Unknown error occurred');
+        //                 reject({ error: error.message || 'Unknown error occurred' });
+        //             }
+        //         });
+        //     });
 
-        return { status: 200, message: 'Transaction Successful' };
+        return { status: 200, transaction: finalTx };
     }
 
     
