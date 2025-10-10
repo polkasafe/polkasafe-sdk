@@ -856,7 +856,7 @@ export class Polkasafe extends Base {
         return { status: 400, error: error };
     }
 
-    async signCustomTx({api, multisigAddress, tx, proxyAddress, tip, statusGrabber}: {api: ApiPromise, multisigAddress: string, tx: SubmittableExtrinsic<'promise'>, proxyAddress: string, tip?: BN, statusGrabber?: (message?: string) => void}): Promise<any> {
+    async signCustomTx({api, multisigAddress, tx, proxyAddress, tip, statusGrabber}: {api: ApiPromise, multisigAddress: string, tx: SubmittableExtrinsic<'promise'>, proxyAddress?: string, tip?: BN, statusGrabber?: (message?: string) => void}): Promise<any> {
         const { data: multisig, error: multisigMetaDataErr } = await this.getMultisigDataByMultiAddress(
             multisigAddress
         );
@@ -896,19 +896,25 @@ export class Polkasafe extends Base {
                 async ({ status, txHash, events }) => {
                     try {
                         if (status.isInvalid) {
+                            console.log('Transaction invalid');
                             statusGrabber('Transaction invalid');
                         } else if (status.isReady) {
+                            console.log('Transaction is ready');
                             statusGrabber('Transaction is ready');
                         } else if (status.isBroadcast) {
+                            console.log('Transaction has been broadcasted');
                             statusGrabber('Transaction has been broadcasted');
                         } else if (status.isInBlock) {
+                            console.log('Transaction is in block');
                             statusGrabber('Transaction is in block');
                         } else if (status.isFinalized) {
+                            console.log('Transaction finalized');
                             statusGrabber('Transaction finalized');
                             
                             const blockHash = status.asFinalized.toHex();
                             const block = await api.rpc.chain.getBlock(blockHash);
                             const blockNumber = block.block.header.number.toNumber();
+                            console.log('Block number', blockNumber, 'Block hash', blockHash, 'Transaction hash', txHash);
 
                             // Process events
                             for (const { event } of events) {
@@ -929,18 +935,21 @@ export class Polkasafe extends Base {
                                 } else if (event.method === 'ExtrinsicFailed') {
                                     const errorModule = (event.data as any)?.dispatchError?.asModule;
                                     if (!errorModule) {
+                                        console.log('Transaction failed');
                                         reject({ error: 'Transaction Failed' });
                                         return;
                                     }
                                     
                                     const { method, section, docs } = api.registry.findMetaError(errorModule);
                                     const errorMessage = `${section}.${method}${docs.length ? ` -- ${docs.join(' ')}` : ''}`;
+                                    console.log('Transaction failed');
                                     reject({ error: errorMessage });
                                     return;
                                 }
                             }
                         }
                     } catch (error) {
+                        console.log('Unknown error occurred');
                         reject({ error: error.message || 'Unknown error occurred' });
                     }
                 });
