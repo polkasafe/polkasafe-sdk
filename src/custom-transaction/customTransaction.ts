@@ -94,8 +94,7 @@ export const customTransactionByMulti = async ({
 
     // Get payment info for weight calculation
     const paymentInfo = await tx.paymentInfo(senderAddress);
-    let weight = paymentInfo.weight;
-
+        const maxWeight = { refTime: 0, proofSize: 0 }; // Zero weight
     // Ensure the transaction is properly encoded with the current API registry
     let finalTx = tx;
     try {
@@ -110,21 +109,15 @@ export const customTransactionByMulti = async ({
         
         // Wrap transaction in proxy if needed
         if (isProxy && multisig.proxy) {
-            weight = 0 as any;
             finalTx = api.tx.proxy.proxy(multisig.proxy, null, finalTx);
         }
     } catch (error) {
         console.log('Error re-encoding transaction:', error);
         // Fallback to original transaction if re-encoding fails
         if (isProxy && multisig.proxy) {
-            weight = 0 as any;
             finalTx = api.tx.proxy.proxy(multisig.proxy, null, tx);
         }
     }
-
-    console.log('-------------------This is from the custom transaction-------------------')
-    console.log(multisig.threshold, otherSignatories.map((signatory: string) => getEncodedAddress(signatory, network)), timePoint, finalTx.toHuman(), weight);
-    console.log(finalTx.toHuman(), finalTx.toHex())
     return new Promise<any>((resolve, reject) => {
         try {
             // Validate that all signatories can be properly encoded
@@ -142,7 +135,7 @@ export const customTransactionByMulti = async ({
                 encodedSignatories,
                 null,
                 finalTx.toHex(),
-                weight
+                maxWeight
             );
 
             // Validate the multisig call can be created
