@@ -860,14 +860,9 @@ export class Polkasafe extends Base {
         const { data: multisig, error: multisigMetaDataErr } = await this.getMultisigDataByMultiAddress(
             multisigAddress
         );
-        console.log('multisig from sdk', multisig);
-
         if (!multisig) {
             return { error: multisigMetaDataErr || responseMessages.onchain_multisig_fetch_error }
         }
-
-        console.log('creating transaction')
-
         const transaction = proxyAddress ? api.tx.proxy.proxy(proxyAddress, null, tx) : tx;
 
         // get the time point
@@ -878,51 +873,17 @@ export class Polkasafe extends Base {
         else {
             timePoint = null;
         }
-        console.log(timePoint)
-
         // get the weight
-        const weight = (await tx.paymentInfo(this.address)).weight;
-
-        console.log('weight',weight)
+        const maxWeight = { refTime: 0, proofSize: 0 }; // Zero weight
 
         const finalTx = api.tx.multisig.asMulti(
             Number(multisig.threshold),
             multisig.signatories.filter((signatory: string) =>  getSubstrateAddress(signatory) !== getSubstrateAddress(this.address)),
             timePoint,
             transaction,
-            weight
+            maxWeight
         );
-
-
-        console.log('final tx', finalTx)
-
-        await finalTx.signAndSend(this.address, (result) => {
-            const { status } = result;
-            if (status.isInvalid) {
-                statusGrabber('Transaction invalid');
-                return;
-            } else if (status.isReady) {
-                statusGrabber('Transaction is ready');
-                return;
-            }
-            else if (status.isBroadcast) {
-                statusGrabber('Transaction has been broadcasted');
-                return;
-            }
-            else if (status.isInBlock) {
-                statusGrabber('Transaction is in block');
-                return;
-            }
-            else if (status.isFinalized) {
-                statusGrabber('Transaction finalized');
-                return;
-            }
-            else if (status.isDropped) {
-                statusGrabber('Transaction dropped');
-                return;
-            }
-        });
-        return { status: 200, message: 'Transaction Successful', tx: finalTx };
+        return { status: 200, transaction: finalTx };
     }
 
     
